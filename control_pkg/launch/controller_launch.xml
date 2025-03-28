@@ -1,0 +1,3 @@
+<launch>
+  <node pkg="control_pkg" exec="controller" name="controller"/>
+</launch>
