@@ -1,6 +1,5 @@
 <launch>
   <node pkg="control_pkg" exec="controller" name="controller"/>
-  <node pkg="control_pkg" exec="ref_talker" name="ref"/>
   <node pkg="control_pkg" exec="talker" name="publisher"/>
   <node pkg="control_pkg" exec="listener" name="subscriber"/>
   <node pkg="control_pkg" exec="updater" name="updater"/>
