@@ -27,7 +27,7 @@ class Controller(Node):
         self.integral = [0, 0, 0]
 
         # Create the publisher for the control signals
-        self.control_publisher_ = self.create_publisher(RPYT, 'control_signals', 10)
+        self.control_publisher = self.create_publisher(RPYT, 'control_signals', 10)
 
         # Create the subscriptions for the reference and pose
         self.ref_subscription = self.create_subscription(
@@ -128,7 +128,7 @@ class Controller(Node):
         msg.thrust = control_signal[2]
 
         #Publish the control signals
-        self.control_publisher_.publish(msg)
+        self.control_publisher.publish(msg)
 
         #Print the control signals
         """
