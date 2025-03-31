@@ -16,9 +16,9 @@ class MinimalPublisher(Node):
 
     def timer_callback(self):
         msg = PoseRPY()
-        msg.x = 10.0
-        msg.y = 15.0
-        msg.z = 5.0
+        msg.x = 0.0
+        msg.y = 0.0
+        msg.z = 0.0
         self.publisher_.publish(msg)
         self.get_logger().info('Publishing ref:')
         self.get_logger().info('Publishing: "%s"' % msg.x)

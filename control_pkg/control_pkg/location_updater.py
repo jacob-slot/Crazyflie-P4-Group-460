@@ -19,11 +19,7 @@ class Controller(Node):
         # Initialize the last reference, pose and error variables
         self.last_ref = PoseRPY()
         self.last_pose = PoseRPY()
-        self.position_number = Int32()
-        self.position_number.data = 0
-
-        self.time = self.get_clock().now().nanoseconds/1000000000
-        self.dt = 0
+        self.position_number = 0
 
         # Create the publisher for the next reference
         self.status_publisher = self.create_publisher(Int32, 'next_ref', 10)
@@ -67,19 +63,17 @@ class Controller(Node):
         # Calculate the error
         for i in range(len(ref)):
             error[i] = ref[i] - pose[i]
+        
+        self.get_logger().info('Error: "%s"' % error[0])
 
         # If within error margin, send the next reference
-        if error[0] < 0.1 and error[1] < 0.1 and error[2] < 0.1 and self.dt > 3:
+        if abs(error[0]) < 0.1 and abs(error[1]) < 0.1 and abs(error[2]) < 0.1:
             self.position_number += 1
             msg = Int32()
 
             # Publish the control signal
-            msg.data = 0
+            msg.data = self.position_number
             self.status_publisher.publish(msg)
-
-            # update the time
-            self.dt = self.get_clock().now().nanoseconds/1000000000 - self.time
-            self.time = self.get_clock().now().nanoseconds/1000000000
 
 
 
