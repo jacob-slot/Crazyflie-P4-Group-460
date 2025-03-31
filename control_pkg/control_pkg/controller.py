@@ -21,6 +21,7 @@ class Controller(Node):
         self.last_ref = PoseRPY()
         self.last_pose = PoseRPY()
         self.last_error = [0, 0, 0]
+        self.first_ref = False
 
         # Initialize the integral term for the PID controller
         self.start_time = self.get_clock().now().nanoseconds/1000000000
@@ -55,11 +56,13 @@ class Controller(Node):
     def listener_callback_ref(self, msg):
         """ Save the last reference """
         self.last_ref = msg
+        self.first_ref = True
 
     def listener_callback_pose(self, msg):
         """ Save the last pose and update the command signal """
         self.last_pose = msg
-        self.pos_to_rpy()
+        if self.first_ref:
+            self.pos_to_rpy()
 
 
     def Yaw_transform(self):
