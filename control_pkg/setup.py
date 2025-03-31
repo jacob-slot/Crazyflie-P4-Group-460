@@ -28,7 +28,7 @@ setup(
             'ref_talker = control_pkg.ref_test_publisher:main',
             'listener = control_pkg.control_signal_test_subscriber:main',
             'controller = control_pkg.controller:main',
-            'updater = control_pkg.location_updater',
+            'updater = control_pkg.location_updater:main',
         ],
     },
 )

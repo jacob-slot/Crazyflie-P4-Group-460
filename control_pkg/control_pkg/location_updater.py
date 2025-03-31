@@ -5,7 +5,7 @@ from rclpy.node import Node
 
 from interfaces.msg import RPYT
 from interfaces.msg import PoseRPY
-from std_msgs.msg import int32
+from std_msgs.msg import Int32
 
 
 
@@ -19,13 +19,14 @@ class Controller(Node):
         # Initialize the last reference, pose and error variables
         self.last_ref = PoseRPY()
         self.last_pose = PoseRPY()
-        self.position_number = int32()
+        self.position_number = Int32()
         self.position_number.data = 0
 
-        time = self.get_clock().now().nanoseconds/1000000000
+        self.time = self.get_clock().now().nanoseconds/1000000000
+        self.dt = 0
 
         # Create the publisher for the next reference
-        self.status_publisher = self.create_publisher(int32, 'next_ref', 10)
+        self.status_publisher = self.create_publisher(Int32, 'next_ref', 10)
 
         # Create the subscriptions for the reference and pose
         self.ref_subscription = self.create_subscription(
@@ -57,25 +58,28 @@ class Controller(Node):
     def update_position(self):
         """ Update the position of the drone """
 
+        error = [0, 0, 0]
+
         # Get the last reference and pose
-        ref = self.last_ref
-        pose = self.last_pose
+        ref = [self.last_ref.x, self.last_ref.y, self.last_ref.z]
+        pose = [self.last_pose.x, self.last_pose.y, self.last_pose.z]
 
         # Calculate the error
-        error = ref - pose
+        for i in range(len(ref)):
+            error[i] = ref[i] - pose[i]
 
         # If within error margin, send the next reference
-        if error[0] < 0.1 and error[1] < 0.1 and error[2] < 0.1 and dt > 3:
+        if error[0] < 0.1 and error[1] < 0.1 and error[2] < 0.1 and self.dt > 3:
             self.position_number += 1
-            msg = int32()
+            msg = Int32()
 
             # Publish the control signal
             msg.data = 0
             self.status_publisher.publish(msg)
 
             # update the time
-            dt = self.get_clock().now().nanoseconds/1000000000 - time
-            time = self.get_clock().now().nanoseconds/1000000000
+            self.dt = self.get_clock().now().nanoseconds/1000000000 - self.time
+            self.time = self.get_clock().now().nanoseconds/1000000000
 
 
 
