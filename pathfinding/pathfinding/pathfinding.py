@@ -28,7 +28,7 @@ class Pathfinding(Node):
     def listen_position(self, msg):
         #get the value next_ref
         self.get_logger().info('Received next_ref: %d' % msg.data)
-        self.array_index = msg.data - 1
+        self.array_index = msg.data
 
     def timer_callback(self):
         self.send_position()
