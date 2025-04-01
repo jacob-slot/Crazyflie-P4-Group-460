@@ -48,6 +48,7 @@ class Controller(Node):
         timer_period = 3  # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
         
+        
 
 
     def timer_callback(self):
@@ -61,7 +62,7 @@ class Controller(Node):
     def listener_callback_pose(self, msg):
         """ Save the last pose and update the command signal """
         self.last_pose = msg
-        if self.first_ref:
+        if self.first_ref == True:
             self.pos_to_rpy()
 
 
@@ -104,7 +105,7 @@ class Controller(Node):
         new_pose, new_ref = self.Yaw_transform()
         
         #Calculate the error
-        error = new_ref - new_pose
+        error = new_ref - new_pose 
 
         #Calculate the integral term
         self.integral += error*dt

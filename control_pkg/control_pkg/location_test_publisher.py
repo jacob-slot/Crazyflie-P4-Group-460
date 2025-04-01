@@ -20,11 +20,12 @@ class MinimalPublisher(Node):
         msg.y = float(5-self.i)
         msg.z = float(5-self.i)
         self.publisher_.publish(msg)
-
+        
         self.get_logger().info('Publishing location:')
         self.get_logger().info('Publishing: "%s"' % msg.x)
         self.get_logger().info('Publishing: "%s"' % msg.y)
         self.get_logger().info('Publishing: "%s"' % msg.z)
+        
         self.i += 1
 
 

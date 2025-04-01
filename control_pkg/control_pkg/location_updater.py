@@ -20,6 +20,7 @@ class Controller(Node):
         self.last_ref = PoseRPY()
         self.last_pose = PoseRPY()
         self.position_number = 0
+        self.first_ref = False
 
         # Create the publisher for the next reference
         self.status_publisher = self.create_publisher(Int32, 'next_ref', 10)
@@ -44,11 +45,13 @@ class Controller(Node):
     def listener_callback_ref(self, msg):
         """ Save the last reference """
         self.last_ref = msg
+        self.first_ref = True
 
     def listener_callback_pose(self, msg):
         """ Save the last pose and update the command signal """
         self.last_pose = msg
-        self.update_position()
+        if self.first_ref == True:
+            self.update_position()
 
 
     def update_position(self):

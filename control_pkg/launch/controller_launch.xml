@@ -1,4 +1,6 @@
 <launch>
   <node pkg="control_pkg" exec="controller" name="controller"/>
   <node pkg="control_pkg" exec="updater" name="updater"/>
+  <node pkg="control_pkg" exec="talker" name="talker"/>
+  <node pkg="control_pkg" exec="listener" name="listener"/>
 </launch>
