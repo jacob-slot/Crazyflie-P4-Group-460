@@ -16,9 +16,9 @@ class MinimalPublisher(Node):
 
     def timer_callback(self):
         msg = PoseRPY()
-        msg.x = self.i
-        msg.y = self.i
-        msg.z = self.i
+        msg.x = float(5.0-self.i)
+        msg.y = float(5.0-self.i)
+        msg.z = float(5.0-self.i)
         self.publisher_.publish(msg)
         
         """
