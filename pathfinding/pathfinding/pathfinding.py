@@ -38,7 +38,7 @@ class Pathfinding(Node):
 
          # Adjust for 0-based index
 
-        if len(self.waypoints) < self.array_index:
+        if len(self.waypoints) == self.array_index:
             #If all waypoints have been achieved, send 0,0,z to return home
             self.publisher.publish(PoseRPY(
             x=0.0,

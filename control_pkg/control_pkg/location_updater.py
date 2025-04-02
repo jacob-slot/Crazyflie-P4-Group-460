@@ -21,8 +21,7 @@ class Controller(Node):
         self.last_pose = [0, 0, 0]
         self.position_number = 0
         self.first_ref = False
-
-        self.time = self.get_clock().now().nanoseconds/1000000000
+        self.dt = 0
 
         # Create the publisher for the next reference
         self.status_publisher = self.create_publisher(Int32, 'next_ref', 10)
@@ -42,6 +41,11 @@ class Controller(Node):
             self.listener_callback_pose,
             10)
         self.pose_subscription
+
+        self.timer = self.create_timer(1, self.timer_callback)
+
+    def timer_callback(self):
+        self.dt += 1
         
 
     def listener_callback_ref(self, msg):
@@ -79,10 +83,8 @@ class Controller(Node):
         
         #self.get_logger().info('Error: "%s"' % error[0])
 
-        dt = self.get_clock().now().nanoseconds/1000000000 - self.time
-
         # If within error margin, send the next reference
-        if abs(error[0]) < 0.1 and abs(error[1]) < 0.1 and abs(error[2]) < 0.1 and dt>2:
+        if abs(error[0]) < 0.1 and abs(error[1]) < 0.1 and abs(error[2]) < 0.1 and self.dt > 3:
             self.position_number += 1
             msg = Int32()
 
@@ -90,7 +92,8 @@ class Controller(Node):
             msg.data = self.position_number
             self.get_logger().info('Update: "%s"' % msg.data)
             self.status_publisher.publish(msg)
-            self.time = self.get_clock().now().nanoseconds/1000000000
+            self.dt = 0
+            
 
 
 
