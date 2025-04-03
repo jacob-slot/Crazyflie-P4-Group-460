@@ -21,6 +21,7 @@ class Controller(Node):
         self.last_ref = PoseRPY()
         self.last_pose = PoseRPY()
         self.last_error = [0, 0, 0]
+        self.first_ref = False
 
         # Initialize the integral term for the PID controller
         self.start_time = self.get_clock().now().nanoseconds/1000000000
@@ -47,6 +48,7 @@ class Controller(Node):
         timer_period = 3  # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
         
+        
 
 
     def timer_callback(self):
@@ -55,11 +57,13 @@ class Controller(Node):
     def listener_callback_ref(self, msg):
         """ Save the last reference """
         self.last_ref = msg
+        self.first_ref = True
 
     def listener_callback_pose(self, msg):
         """ Save the last pose and update the command signal """
         self.last_pose = msg
-        self.pos_to_rpy()
+        if self.first_ref == True:
+            self.pos_to_rpy()
 
 
     def Yaw_transform(self):
@@ -67,18 +71,16 @@ class Controller(Node):
         Transforms the reference and pose vectors to the yaw frame
         """
 
-        #Save the XYZ vectors of the reference and pose
+        #Save the XYZ vector of the reference 
         ref_vector = [self.last_ref.x, self.last_ref.y, self.last_ref.z]
-        pose_vector = [self.last_pose.x, self.last_pose.y, self.last_pose.z]
 
         #Create the yaw matrix
         yaw_matrix = np.array([[np.cos(self.last_pose.yaw), -np.sin(self.last_pose.yaw), 0], [np.sin(self.last_pose.yaw), np.cos(self.last_pose.yaw), 0], [0, 0, 1]])
         
-        #Transform the reference and pose vectors to the yaw frame
-        new_pose = np.dot(yaw_matrix, pose_vector)
+        #Transform the reference vector to the yaw frame
         new_ref = np.dot(yaw_matrix, ref_vector)
 
-        return new_pose, new_ref
+        return new_ref
         
 
     def PID(self):
@@ -88,9 +90,9 @@ class Controller(Node):
 
         #Initialize the control signal and the PID gains
         control_signal = [0, 0, 0]
-        Kp = [ 1, 1, 1 ]
+        Kp = [ 0.01, 0.01, 0.01 ]
         Ki = [ 0, 0, 0 ]
-        Kd = [ 1, 1, 1 ]
+        Kd = [ 0, 0, 0 ]
 
         #Calculate the time difference
         time = self.get_clock().now().nanoseconds/1000000000
@@ -98,10 +100,10 @@ class Controller(Node):
         self.start_time = time
 
         #Transform the reference and pose vectors to the yaw frame
-        new_pose, new_ref = self.Yaw_transform()
+        new_ref = self.Yaw_transform()
         
         #Calculate the error
-        error = new_ref - new_pose
+        error = new_ref - [self.last_pose.x, self.last_pose.y, self.last_pose.z]
 
         #Calculate the integral term
         self.integral += error*dt
@@ -109,6 +111,11 @@ class Controller(Node):
         #Calculate the control signals for roll, pitch and thrust
         for i in [1,0,2]:
             control_signal[i] = Kp[i]*error[i] + Ki[i]*self.integral[i] + Kd[i]*(error[i] - self.last_error[i])/dt
+            if control_signal[i] > 1:
+                control_signal[i] = 1
+            elif control_signal[i] < -1:
+                control_signal[i] = -1
+                
         
         return control_signal
     

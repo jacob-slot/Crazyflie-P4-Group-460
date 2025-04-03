@@ -17,12 +17,10 @@ class Controller(Node):
         super().__init__('Controller')
 
         # Initialize the last reference, pose and error variables
-        self.last_ref = PoseRPY()
-        self.last_pose = PoseRPY()
-        self.position_number = Int32()
-        self.position_number.data = 0
-
-        self.time = self.get_clock().now().nanoseconds/1000000000
+        self.last_ref = [0, 0, 0]
+        self.last_pose = [0, 0, 0]
+        self.position_number = 0
+        self.first_ref = False
         self.dt = 0
 
         # Create the publisher for the next reference
@@ -43,16 +41,31 @@ class Controller(Node):
             self.listener_callback_pose,
             10)
         self.pose_subscription
+
+        self.timer = self.create_timer(1, self.timer_callback)
+
+    def timer_callback(self):
+        self.dt += 1
         
 
     def listener_callback_ref(self, msg):
         """ Save the last reference """
-        self.last_ref = msg
+        self.last_ref[0] = msg.x
+        self.last_ref[1] = msg.y
+        self.last_ref[2] = msg.z
+
+        #self.get_logger().info('Reference: "%s"' % self.last_ref[0])
+        self.first_ref = True
 
     def listener_callback_pose(self, msg):
         """ Save the last pose and update the command signal """
-        self.last_pose = msg
-        self.update_position()
+        self.last_pose[0] = msg.x
+        self.last_pose[1] = msg.y
+        self.last_pose[2] = msg.z
+
+        #self.get_logger().info('Pose: "%s"' % self.last_pose[0])
+        if self.first_ref == True:
+            self.update_position()
 
 
     def update_position(self):
@@ -61,25 +74,26 @@ class Controller(Node):
         error = [0, 0, 0]
 
         # Get the last reference and pose
-        ref = [self.last_ref.x, self.last_ref.y, self.last_ref.z]
-        pose = [self.last_pose.x, self.last_pose.y, self.last_pose.z]
+        ref = self.last_ref
+        pose = self.last_pose
 
         # Calculate the error
         for i in range(len(ref)):
             error[i] = ref[i] - pose[i]
+        
+        #self.get_logger().info('Error: "%s"' % error[0])
 
         # If within error margin, send the next reference
-        if error[0] < 0.1 and error[1] < 0.1 and error[2] < 0.1 and self.dt > 3:
+        if abs(error[0]) < 0.1 and abs(error[1]) < 0.1 and abs(error[2]) < 0.1 and self.dt > 3:
             self.position_number += 1
             msg = Int32()
 
             # Publish the control signal
-            msg.data = 0
+            msg.data = self.position_number
+            self.get_logger().info('Update: "%s"' % msg.data)
             self.status_publisher.publish(msg)
-
-            # update the time
-            self.dt = self.get_clock().now().nanoseconds/1000000000 - self.time
-            self.time = self.get_clock().now().nanoseconds/1000000000
+            self.dt = 0
+            
 
 
 

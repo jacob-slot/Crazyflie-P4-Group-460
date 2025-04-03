@@ -16,11 +16,13 @@ class MinimalSubscriber(Node):
         self.subscription  # prevent unused variable warning
 
     def listener_callback(self, msg):
+
         self.get_logger().info('I heard roll: "%s"' % msg.roll)
+        """
         self.get_logger().info('I heard pitch: "%s"' % msg.pitch)
         self.get_logger().info('I heard yaw: "%s"' % msg.yaw)
         self.get_logger().info('I heard thrust: "%s"' % msg.thrust)
-
+        """
 
 def main(args=None):
     rclpy.init(args=args)
