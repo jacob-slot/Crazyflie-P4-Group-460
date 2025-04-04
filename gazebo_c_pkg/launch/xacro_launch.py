@@ -10,7 +10,7 @@ def generate_launch_description():
 
     # Specify package and file paths
     pkg_name = 'gazebo_c_pkg'
-    urdf_file = 'models/test/roll_pich.urdf.xacro'
+    urdf_file = 'models/crazyflie_xacro/crazyflie.urdf.xacro'
     rviz_config_file = 'config/test.rviz'
 
     # Get file paths
@@ -52,12 +52,7 @@ def generate_launch_description():
             os.path.join(get_package_share_directory('ros_gz_sim'), 'launch'), '/gz_sim.launch.py']),
         launch_arguments={'gz_args': [os.path.join(get_package_share_directory('gazebo_c_pkg'), 'worlds', 'empty.sdf'), '']}.items()
     )
- 
-    spawn_entity = Node(
-        package='ros_gz_sim', 
-        executable='create',
-        arguments=['-topic', 'robot_description', '-entity', 'my_bot'],
-        output='screen')
+
 
     spawn_robot = Node(
     package='ros_gz_sim',
@@ -69,8 +64,9 @@ def generate_launch_description():
     return LaunchDescription([
         node_robot_state_publisher,
         node_rviz2,
-        gazebo,
-        spawn_robot
+        #gazebo,
+        #spawn_robot
         #spawn_entity
         #joint_state_publisher
     ])
+
