@@ -18,9 +18,13 @@ cd ../..
 
 # Install other python libraries
 pip install motioncapture
+pip install catkin_pkg
+pip install empy
+pip install lark
+pip install pyyaml
 
 # Colcon build
 cd ../..
 colcon build --base-path src/Crazyflie-P4-Group-460/
-source install/local_setup.bash
+source install/setup.bash # This or local_setup.bash, i dont know the difference
 cd src/Crazyflie-P4-Group-460/

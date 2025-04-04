@@ -4,7 +4,7 @@ Git repo for our 4 semester project
 ## How to run:
 1. Run the setup bash by:  
    ```
-   bash setup.sh
+   source setup.sh
    ```
 
 3. If using CrazyRadio for the first time, give it USB permissions by first running:  

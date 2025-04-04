@@ -133,7 +133,7 @@ env.bak/
 venv.bak/
 
 # External python libraries source code
-lib_src/
+.lib_src/
 
 # Spyder project settings
 .spyderproject
