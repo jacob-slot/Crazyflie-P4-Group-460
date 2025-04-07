@@ -13,7 +13,9 @@ from cflib.utils.reset_estimator import reset_estimator
 
 # Import custom message types
 from interfaces.msg import RPYT
-#from interfaces.msg import Cf_log
+from interfaces.msg import Cf_log
+
+vicon = False
 
 # URI to the Crazyflie to connect to
 uri = uri_helper.uri_from_env(default='radio://0/80/2M/E7E7E7E7E7')
@@ -27,6 +29,10 @@ orientation_std_dev = 8.0e-3
 class DroneInterfaceNode(Node):
     def __init__(self, myFlie):
         self.myFlie = myFlie
+        self.roll = 0
+        self.pitch = 0
+        self.yaw = 0
+        self.thrust = 0
 
         # Initialize the node with the name 'drone_interface'
         super().__init__('drone_interface')
@@ -35,7 +41,7 @@ class DroneInterfaceNode(Node):
         self.subscription = self.create_subscription(RPYT, 'control_signals', self.listener_callback, 10)
         
         # Create the publisher for the cf_log topic
-        #self.publisher = self.create_publisher(Cf_log, 'cf_log', 10)
+        self.publisher = self.create_publisher(Cf_log, 'cf_log', 10)
 
         # Set up logging
         logconf = LogConfig(name='Motors', period_in_ms=20)
@@ -45,37 +51,63 @@ class DroneInterfaceNode(Node):
         logconf.add_variable('motor.m4', 'uint16_t')
         logconf.add_variable('pm.vbatMV', 'uint16_t')
         myFlie.log.add_config(logconf)
-        logconf.data_received_cb.add_callback(log_data_callback)
+        logconf.data_received_cb.add_callback(self.log_data_callback)
 
         logconf.start()
+        
+        # Send zero setpoint to the Crazyflie to unlock thrust protection
+        self.myFlie.commander.send_setpoint(0, 0, 0, 0)
+        time.sleep(0.1)
+        self.myFlie.commander.send_notify_setpoint_stop()
+        time.sleep(0.1)
 
-        
-        myFlie.high_level_commander.takeoff(1.0, 2.0)
+        #self.create_timer(0.1, self.send_rpyt)
+        myFlie.high_level_commander.takeoff(0.5, 2.0)
         time.sleep(3.0)
-        myFlie.high_level_commander.go_to(0, 0, 0.1, 0.0, 1.0)
-        time.sleep(20.0)
-        myFlie.high_level_commander.land(0.0, 4.0)
-        time.sleep(5.0)
         
-        
-        self.commander = myFlie.commander
-        # doesnt work> self.commander.flightmode.stabModeYaw = 1        
+
+    def send_rpyt(self):
+        self.myFlie.commander.send_setpoint(self.roll, self.pitch, self.yaw, self.thrust)
 
     # Print the received control signal
     def listener_callback(self, msg):
 
         # Convert the RPYT message to the Crazyflie setpoint, which is in degrees and integer thrust
-        thrust = int(msg.thrust*1000)
+        self.thrust = int(msg.thrust*1000)
         # convert degrees to radians
-        roll = msg.roll * 180 / np.pi
-        pitch = msg.pitch * 180 / np.pi
-        yaw = msg.yaw * 180 / np.pi
+        self.roll = msg.roll * 180 / np.pi
+        self.pitch = msg.pitch * 180 / np.pi
+        self.yaw = msg.yaw * 180 / np.pi
 
-        # Send the setpoint to the Crazyflie
-        self.commander.send_setpoint(roll, pitch, yaw, thrust) 
-        time.sleep(0.01)
-        self.get_logger().info(f'Received setpoint: roll={roll}, pitch={pitch}, yaw={yaw}, thrust={thrust}')
+        self.get_logger().info(f'Received setpoint: roll={self.roll}, pitch={self.pitch}, yaw={self.yaw}, thrust={self.thrust}')
+
+        # TEST
+        for i in range(10):
+            self.myFlie.commander.send_setpoint(self.roll, self.pitch, self.yaw, self.thrust)
+            time.sleep(0.1)
+        # Hand control over to the high level commander to avoid timeout and locking of the Crazyflie
+        self.myFlie.commander.send_notify_setpoint_stop()
+        print('Control back to high level commander')
+        self.myFlie.high_level_commander.go_to(0, 0, 0.5, 0, 1, relative=False)
         
+    def log_data_callback(self, timestamp, data, x):
+
+        msg = Cf_log()
+        msg.m1 = data["motor.m1"]
+        msg.m2 = data["motor.m2"]
+        msg.m3 = data["motor.m3"]
+        msg.m4 = data["motor.m4"]
+        msg.vbatMV = data["pm.vbatMV"]
+        msg.x = latest_pose[0]
+        msg.y = latest_pose[1]
+        msg.z = latest_pose[2]
+        msg.qx = latest_pose[3]
+        msg.qy = latest_pose[4]
+        msg.qz = latest_pose[5]
+        msg.qw = latest_pose[6]
+        
+        # Publish the log data
+        self.publisher.publish(msg)
 
 
 class MocapWrapper(Thread):
@@ -104,44 +136,27 @@ class MocapWrapper(Thread):
                         latest_pose = [pos[0], pos[1], pos[2], quat.x, quat.y, quat.z, quat.w]
                         self.on_pose([pos[0], pos[1], pos[2], obj.rotation])
 
+
 def send_extpose_quat(cf, x, y, z, quat):
     cf.extpos.send_extpose(x, y, z, quat.x, quat.y, quat.z, quat.w)    
-
-def log_data_callback(timestamp, data, x):
-
-    #print(data["motor.m1"])
-    
-    #print("logging")
-    return
-    msg = Cf_log()
-    msg.m1 = data["motor.m1"]
-    msg.m2 = data["motor.m2"]
-    msg.m3 = data["motor.m3"]
-    msg.m4 = data["motor.m4"]
-    msg.vbatMV = data["pm.vbatMV"]
-    msg.x = latest_pose[0]
-    msg.y = latest_pose[1]
-    msg.z = latest_pose[2]
-    msg.qx = latest_pose[3]
-    msg.qy = latest_pose[4]
-    msg.qz = latest_pose[5]
-    msg.qw = latest_pose[6]
-    
-    # Publish the log data
-    self.publisher.publish(msg)
 
 def main(args=None):
 
     print("Connecting to the Crazyflie...")
     cflib.crtp.init_drivers()
 
-    print("Connecting to the vicon...")
-    mocap_wrapper = MocapWrapper(rigid_body_name)
+    if vicon:
+        print("Connecting to the vicon...")
+        mocap_wrapper = MocapWrapper(rigid_body_name)
+    else:
+        print('Vicon is disabled. No mocap data will be sent to the Crazyflie.')
 
     with SyncCrazyflie(uri, cf=Crazyflie(rw_cache='./cache')) as scf:
         myFlie = scf.cf
-        # Set up a callback to handle data from the mocap system
-        mocap_wrapper.on_pose = lambda pose: send_extpose_quat(myFlie, pose[0], pose[1], pose[2], pose[3])
+
+        if vicon:
+            # Set up a callback to handle data from the mocap system
+            mocap_wrapper.on_pose = lambda pose: send_extpose_quat(myFlie, pose[0], pose[1], pose[2], pose[3])
 
         # adjust orientation sensitivity
         myFlie.param.set_value('locSrv.extQuatStdDev', orientation_std_dev)
@@ -152,10 +167,14 @@ def main(args=None):
         # Set the std deviation for the quaternion data pushed into the kalman filter. The default value seems to be a bit too low.
         myFlie.param.set_value('locSrv.extQuatStdDev', 0.06)
 
+        # Set the yaw commands to absolute angle (deg) instead of yaw rate (deg/s)
+        myFlie.param.set_value('flightmode.stabModeYaw', 1)
+
         # Activate mellinger_controller
         #myFlie.param.set_value('stabilizer.controller', '2')
 
-        reset_estimator(myFlie)
+        if vicon:
+            reset_estimator(myFlie)
 
         # Arm the Crazyflie
         print("Arming the Crazyflie...")
@@ -170,7 +189,9 @@ def main(args=None):
         # AFTER THE NODE IS CLOSED
         node.destroy_node()
         rclpy.shutdown()
-    mocap_wrapper.close()
+
+    if vicon:
+        mocap_wrapper.close()
 
 if __name__ == '__main__':
     main()
