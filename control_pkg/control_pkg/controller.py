@@ -5,6 +5,7 @@ from rclpy.node import Node
 
 from interfaces.msg import RPYT
 from interfaces.msg import PoseRPY
+from geometry_msgs.msg import Pose
 
 
 
@@ -39,7 +40,7 @@ class Controller(Node):
         self.ref_subscription 
 
         self.pose_subscription = self.create_subscription(
-            PoseRPY,
+            Pose,
             'location',
             self.listener_callback_pose,
             10)
@@ -75,7 +76,7 @@ class Controller(Node):
         ref_vector = [self.last_ref.x, self.last_ref.y, self.last_ref.z]
 
         #Create the yaw matrix
-        yaw_matrix = np.array([[np.cos(self.last_pose.yaw), -np.sin(self.last_pose.yaw), 0], [np.sin(self.last_pose.yaw), np.cos(self.last_pose.yaw), 0], [0, 0, 1]])
+        yaw_matrix = np.array([[np.cos(self.last_pose.orientation.z), -np.sin(self.last_pose.orientation.z), 0], [np.sin(self.last_pose.orientation.z), np.cos(self.last_pose.orientation.z), 0], [0, 0, 1]])
         
         #Transform the reference vector to the yaw frame
         new_ref = np.dot(yaw_matrix, ref_vector)
@@ -90,9 +91,9 @@ class Controller(Node):
 
         #Initialize the control signal and the PID gains
         control_signal = [0, 0, 0]
-        Kp = [ 0.01, 0.01, 0.01 ]
-        Ki = [ 0, 0, 0 ]
-        Kd = [ 0, 0, 0 ]
+        Kp = [ 1, 1, 1 ]
+        Ki = [ 1, 1, 1 ]
+        Kd = [ 1, 1, 1 ]
 
         #Calculate the time difference
         time = self.get_clock().now().nanoseconds/1000000000
@@ -103,7 +104,8 @@ class Controller(Node):
         new_ref = self.Yaw_transform()
         
         #Calculate the error
-        error = new_ref - [self.last_pose.x, self.last_pose.y, self.last_pose.z]
+        error = new_ref - [self.last_pose.position.x, self.last_pose.position.y, self.last_pose.position.z]
+        self.get_logger().info('Error: "%s"' % error)
 
         #Calculate the integral term
         self.integral += error*dt
@@ -111,12 +113,9 @@ class Controller(Node):
         #Calculate the control signals for roll, pitch and thrust
         for i in [1,0,2]:
             control_signal[i] = Kp[i]*error[i] + Ki[i]*self.integral[i] + Kd[i]*(error[i] - self.last_error[i])/dt
-            if control_signal[i] > 1:
-                control_signal[i] = 1
-            elif control_signal[i] < -1:
-                control_signal[i] = -1
-                
-        
+
+        self.last_error = error
+
         return control_signal
     
 
@@ -138,12 +137,10 @@ class Controller(Node):
         self.control_publisher.publish(msg)
 
         #Print the control signals
-        """
         self.get_logger().info('Publishing roll: "%s"' % msg.roll)
         self.get_logger().info('Publishing pitch: "%s"' % msg.pitch)
         self.get_logger().info('Publishing yaw: "%s"' % msg.yaw)
-        self.get_logger().info('Publishing thrust: "%s"' % msg.thrust)"
-        """
+        self.get_logger().info('Publishing thrust: "%s"' % msg.thrust)
         
 
 
