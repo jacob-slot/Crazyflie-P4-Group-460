@@ -9,6 +9,7 @@ from interfaces.msg import PoseRPY
 
 
 
+
 class Controller(Node):
 
     
@@ -90,9 +91,9 @@ class Controller(Node):
 
         #Initialize the control signal and the PID gains
         control_signal = [0, 0, 0]
-        Kp = [ 0.01, 0.01, 0.01 ]
-        Ki = [ 0, 0, 0 ]
-        Kd = [ 0, 0, 0 ]
+        Kp = [ 1.0, 1.0, 1.0 ]
+        Ki = [ 0.0, 0.0, 0.0 ]
+        Kd = [ 0.0, 0.0, 0.0 ]
 
         #Calculate the time difference
         time = self.get_clock().now().nanoseconds/1000000000
@@ -104,6 +105,7 @@ class Controller(Node):
         
         #Calculate the error
         error = new_ref - [self.last_pose.x, self.last_pose.y, self.last_pose.z]
+        self.get_logger().info('Error: "%s"' % error)
 
         #Calculate the integral term
         self.integral += error*dt
@@ -111,12 +113,9 @@ class Controller(Node):
         #Calculate the control signals for roll, pitch and thrust
         for i in [1,0,2]:
             control_signal[i] = Kp[i]*error[i] + Ki[i]*self.integral[i] + Kd[i]*(error[i] - self.last_error[i])/dt
-            if control_signal[i] > 1:
-                control_signal[i] = 1
-            elif control_signal[i] < -1:
-                control_signal[i] = -1
-                
-        
+
+        self.last_error = error
+
         return control_signal
     
 
@@ -138,12 +137,10 @@ class Controller(Node):
         self.control_publisher.publish(msg)
 
         #Print the control signals
-        """
         self.get_logger().info('Publishing roll: "%s"' % msg.roll)
         self.get_logger().info('Publishing pitch: "%s"' % msg.pitch)
         self.get_logger().info('Publishing yaw: "%s"' % msg.yaw)
-        self.get_logger().info('Publishing thrust: "%s"' % msg.thrust)"
-        """
+        self.get_logger().info('Publishing thrust: "%s"' % msg.thrust)
         
 
 

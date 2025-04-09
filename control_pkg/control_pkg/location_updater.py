@@ -3,9 +3,9 @@ import numpy as np
 import rclpy
 from rclpy.node import Node
 
-from interfaces.msg import RPYT
 from interfaces.msg import PoseRPY
 from std_msgs.msg import Int32
+from geometry_msgs.msg import Pose
 
 
 
@@ -59,9 +59,9 @@ class Controller(Node):
 
     def listener_callback_pose(self, msg):
         """ Save the last pose and update the command signal """
-        self.last_pose[0] = msg.x
-        self.last_pose[1] = msg.y
-        self.last_pose[2] = msg.z
+        self.last_pose[0] = msg.position.x
+        self.last_pose[1] = msg.position.y
+        self.last_pose[2] = msg.position.z
 
         #self.get_logger().info('Pose: "%s"' % self.last_pose[0])
         if self.first_ref == True:
