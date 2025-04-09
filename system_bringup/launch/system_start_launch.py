@@ -3,19 +3,20 @@ from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.launch_description_sources import AnyLaunchDescriptionSource
 from launch_ros.actions import Node
 import xacro
 
 def generate_launch_description():
 
     # Specify package and file paths
-    pkg_name = 'gazebo_c_pkg'
     urdf_file = 'models/crazyflie_xacro/crazyflie.urdf.xacro'
     rviz_config_file = 'config/test.rviz'
 
     # Get file paths
-    xacro_path = os.path.join(get_package_share_directory(pkg_name), urdf_file)
-    rviz_config_path = os.path.join(get_package_share_directory(pkg_name), rviz_config_file)
+    xacro_path = os.path.join(get_package_share_directory('gazebo_c_pkg'), urdf_file)
+    rviz_config_path = os.path.join(get_package_share_directory('gazebo_c_pkg'), rviz_config_file)
+    vprn_mocap_path = os.path.join(get_package_share_directory('vrpn_mocap'), 'launch')
 
 
     # Process URDF/Xacro
@@ -30,15 +31,6 @@ def generate_launch_description():
 
     )
 
-    # Joint State Publisher GUI
-    joint_state_publisher = Node(
-        package='joint_state_publisher_gui',
-        executable='joint_state_publisher_gui',
-        output='screen',
-        parameters=[{'use_sim_time': True}]
-        
-    )
-
     # RViz2 with custom config
     node_rviz2 = Node(
         package='rviz2',
@@ -46,27 +38,22 @@ def generate_launch_description():
         output='screen',
         arguments=['-d', rviz_config_path]
     )
-
-    gazebo = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([
-            os.path.join(get_package_share_directory('ros_gz_sim'), 'launch'), '/gz_sim.launch.py']),
-        launch_arguments={'gz_args': [os.path.join(get_package_share_directory('gazebo_c_pkg'), 'worlds', 'empty.sdf'), '']}.items()
+    
+    # vrpn_mocap
+    mocap_node = IncludeLaunchDescription(
+        AnyLaunchDescriptionSource(
+            os.path.join(vprn_mocap_path, 'client.launch.yaml')
+        ),
     )
-
-
-    spawn_robot = Node(
-    package='ros_gz_sim',
-    executable='create',
-    arguments=['-topic', '/robot_description'],  # <- this
-    output='screen'
-    )
+    print(os.path.join(vprn_mocap_path))
 
     return LaunchDescription([
-        node_robot_state_publisher,
         node_rviz2,
+        mocap_node,
         #gazebo,
         #spawn_robot
         #spawn_entity
-        #joint_state_publisher
+        #joint_state_publisher,
+        #node_robot_state_publisher,
     ])
 
