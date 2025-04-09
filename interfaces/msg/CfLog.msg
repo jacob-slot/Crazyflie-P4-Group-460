@@ -1,15 +1,15 @@
-float64 m1
-float64 m2
-float64 m3
-float64 m4
-
-float64 battery
-
 float64 x
 float64 y
 float64 z
 
-float64 quatx
-float64 quaty
-float64 quatz
-float64 quatw
+float64 quat_x
+float64 quat_y
+float64 quat_z
+float64 quat_w
+
+float64 roll_signal
+float64 pitch_signal
+float64 yaw_signal
+float64 thrust_signal
+
+float64 battery_voltage
