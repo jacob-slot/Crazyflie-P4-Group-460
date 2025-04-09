@@ -16,7 +16,6 @@ def generate_launch_description():
     # Get file paths
     xacro_path = os.path.join(get_package_share_directory('gazebo_c_pkg'), urdf_file)
     rviz_config_path = os.path.join(get_package_share_directory('gazebo_c_pkg'), rviz_config_file)
-    vprn_mocap_path = os.path.join(get_package_share_directory('vrpn_mocap'), 'launch')
     control_pkg_path = os.path.join(get_package_share_directory('control_pkg'))
     pathfinding_path = os.path.join(get_package_share_directory('pathfinding'))
     sim_py_pkg_path = os.path.join(get_package_share_directory('simulation_python_pkg'))
@@ -66,17 +65,9 @@ def generate_launch_description():
         ),
     )
     
-    # vrpn_mocap
-    mocap_node = IncludeLaunchDescription(
-        AnyLaunchDescriptionSource(
-            os.path.join(vprn_mocap_path, 'client.launch.yaml')
-        ),
-    )
-    print(os.path.join(vprn_mocap_path))
 
     return LaunchDescription([
         #node_rviz2,
-        #mocap_node,
         control_node,
         node_pathfinding,
         node_sim_py,
