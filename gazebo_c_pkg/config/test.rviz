@@ -7,6 +7,8 @@ Panels:
         - /Global Options1
         - /Status1
         - /RobotModel1
+        - /Pose1
+        - /Pose1/Topic1
       Splitter Ratio: 0.5
     Tree Height: 542
   - Class: rviz_common/Selection
@@ -66,11 +68,35 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-        base_link:
+        crazyflie_body:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
+        crazyflie_m1_prop:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        crazyflie_m2_prop:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        crazyflie_m3_prop:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        crazyflie_m4_prop:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        world:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
       Mass Properties:
         Inertia: false
         Mass: false
@@ -79,10 +105,30 @@ Visualization Manager:
       Update Interval: 0
       Value: true
       Visual Enabled: true
+    - Alpha: 1
+      Axes Length: 1
+      Axes Radius: 0.10000000149011612
+      Class: rviz_default_plugins/Pose
+      Color: 255; 25; 0
+      Enabled: true
+      Head Length: 0.30000001192092896
+      Head Radius: 0.10000000149011612
+      Name: Pose
+      Shaft Length: 1
+      Shaft Radius: 0.05000000074505806
+      Shape: Axes
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Best Effort
+        Value: /vrpn_mocap/Crazyflie/pose
+      Value: true
   Enabled: true
   Global Options:
-    Background Color: 48; 48; 48
-    Fixed Frame: base_link
+    Background Color: 222; 221; 218
+    Fixed Frame: world
     Frame Rate: 30
   Name: root
   Tools:
@@ -125,7 +171,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 10
+      Distance: 34.63657760620117
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -140,10 +186,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.6103981733322144
+      Pitch: 0.5003989338874817
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 0.7903980016708374
+      Yaw: 1.1753979921340942
     Saved: ~
 Window Geometry:
   Displays:
