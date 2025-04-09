@@ -36,7 +36,6 @@ class Controller(Node):
 
         self.pose_subscription = self.create_subscription(
             PoseRPY,
-            
             'location',
             self.listener_callback_pose,
             10)
