@@ -13,9 +13,9 @@ from cflib.utils.reset_estimator import reset_estimator
 
 # Import custom message types
 from interfaces.msg import RPYT
-from interfaces.msg import Cf_log
+from interfaces.msg import CfLog
 
-vicon = False
+vicon = True
 
 # URI to the Crazyflie to connect to
 uri = uri_helper.uri_from_env(default='radio://0/80/2M/E7E7E7E7E7')
@@ -32,7 +32,10 @@ class DroneInterfaceNode(Node):
         self.roll = 0
         self.pitch = 0
         self.yaw = 0
-        self.thrust = 0
+        self.thrust = 46550
+        self.setPointControl = False
+        self.prevZ = 0
+        self.prevThrust = 0
 
         # Initialize the node with the name 'drone_interface'
         super().__init__('drone_interface')
@@ -40,34 +43,92 @@ class DroneInterfaceNode(Node):
         # Create the subscription to the control signals topic
         self.subscription = self.create_subscription(RPYT, 'control_signals', self.listener_callback, 10)
         
-        # Create the publisher for the cf_log topic
-        self.publisher = self.create_publisher(Cf_log, 'cf_log', 10)
+        # Create the publisher for the CfLog topic
+        self.publisher = self.create_publisher(CfLog, 'CfLog', 10)
 
         # Set up logging
         logconf = LogConfig(name='Motors', period_in_ms=20)
-        logconf.add_variable('motor.m1', 'uint16_t')
-        logconf.add_variable('motor.m2', 'uint16_t')
-        logconf.add_variable('motor.m3', 'uint16_t')
-        logconf.add_variable('motor.m4', 'uint16_t')
+        #logconf.add_variable('motor.m1', 'uint16_t')
+        #logconf.add_variable('motor.m2', 'uint16_t')
+        #logconf.add_variable('motor.m3', 'uint16_t')
+        #logconf.add_variable('motor.m4', 'uint16_t')
         logconf.add_variable('pm.vbatMV', 'uint16_t')
+        logconf.add_variable('controller.cmd_thrust', 'float')
         myFlie.log.add_config(logconf)
         logconf.data_received_cb.add_callback(self.log_data_callback)
 
         logconf.start()
         
+        # create new txt file with unique name
+        #timestamp = time.strftime("%Y%m%d-%H%M%S")
+        #self.log_file = open(f'log_{timestamp}.txt', 'w')
+        #self.log_file.write(str(self.thrust) + '\n')
+
         # Send zero setpoint to the Crazyflie to unlock thrust protection
         self.myFlie.commander.send_setpoint(0, 0, 0, 0)
         time.sleep(0.1)
         self.myFlie.commander.send_notify_setpoint_stop()
         time.sleep(0.1)
 
-        #self.create_timer(0.1, self.send_rpyt)
         myFlie.high_level_commander.takeoff(0.5, 2.0)
         time.sleep(3.0)
+        myFlie.high_level_commander.go_to(0, 0, 1, 0, 2, relative=False)
+        time.sleep(3.0)
+
+        for i in range (3):
+            for i in range(15):
+                myFlie.commander.send_setpoint(-8.0, 0, 0, int(self.prevThrust))
+                time.sleep(0.1)
+
+            myFlie.commander.send_setpoint(10, 0, 0, int(self.prevThrust))
+            time.sleep(0.1)
+            myFlie.commander.send_notify_setpoint_stop()
+            #time.sleep(0.05)
+            myFlie.high_level_commander.go_to(0, 0, 1, 0, 5, relative=False)
+            time.sleep(6.0)
+
+
+        myFlie.high_level_commander.land(0.0, 2.0)
+        time.sleep(3.0)
+
+        # end the link
+        self.myFlie.high_level_commander.stop()
+        self.myFlie.platform.send_arming_request(False)
+        time.sleep(1.0)
+        # end the program
+        #self.log_file.close()
+        # close the python program
+        self.get_logger().info('Crazyflie disarmed and program ended.')
+        rclpy.shutdown()
+        exit(0)
+
+        #self.create_timer(0.1, self.send_rpyt)
+        #self.create_timer(6, self.back_to_center)
         
 
     def send_rpyt(self):
+        self.setPointControl = True
         self.myFlie.commander.send_setpoint(self.roll, self.pitch, self.yaw, self.thrust)
+
+    def back_to_center(self):
+        self.setPointControl = False
+        self.myFlie.commander.send_notify_setpoint_stop()
+        time.sleep(0.1)
+        self.myFlie.high_level_commander.go_to(0, 0, 1, 0, 5, relative=False)
+        time.sleep(6.0)
+        self.myFlie.high_level_commander.land(0.0, 3.0)
+        time.sleep(4.0)
+        # end the link
+        self.myFlie.high_level_commander.stop()
+        self.myFlie.platform.send_arming_request(False)
+        time.sleep(1.0)
+        # end the program
+        #self.log_file.close()
+        # close the python program
+        self.get_logger().info('Crazyflie disarmed and program ended.')
+        rclpy.shutdown()
+        exit(0)
+
 
     # Print the received control signal
     def listener_callback(self, msg):
@@ -80,34 +141,60 @@ class DroneInterfaceNode(Node):
         self.yaw = msg.yaw * 180 / np.pi
 
         self.get_logger().info(f'Received setpoint: roll={self.roll}, pitch={self.pitch}, yaw={self.yaw}, thrust={self.thrust}')
-
+        
         # TEST
-        for i in range(10):
-            self.myFlie.commander.send_setpoint(self.roll, self.pitch, self.yaw, self.thrust)
-            time.sleep(0.1)
+        #self.setPointControl = True
+        #for i in range(10):
+        #    self.myFlie.commander.send_setpoint(self.roll, self.pitch, self.yaw, self.thrust)
+        #    time.sleep(0.1)
         # Hand control over to the high level commander to avoid timeout and locking of the Crazyflie
-        self.myFlie.commander.send_notify_setpoint_stop()
-        print('Control back to high level commander')
-        self.myFlie.high_level_commander.go_to(0, 0, 0.5, 0, 1, relative=False)
+        if self.thrust < 40000:
+            self.myFlie.commander.send_notify_setpoint_stop()
+            print('Control back to high level commander')
+            self.setPointControl = False
+            #self.myFlie.high_level_commander.go_to(0, 0, 0.5, 0, 1, relative=False)
+            #time.sleep(4.0)
+            self.myFlie.high_level_commander.land(0.0, 3.0)
+            time.sleep(4.0)
+
         
     def log_data_callback(self, timestamp, data, x):
 
-        msg = Cf_log()
-        msg.m1 = data["motor.m1"]
-        msg.m2 = data["motor.m2"]
-        msg.m3 = data["motor.m3"]
-        msg.m4 = data["motor.m4"]
-        msg.vbatMV = data["pm.vbatMV"]
-        msg.x = latest_pose[0]
-        msg.y = latest_pose[1]
-        msg.z = latest_pose[2]
-        msg.qx = latest_pose[3]
-        msg.qy = latest_pose[4]
-        msg.qz = latest_pose[5]
-        msg.qw = latest_pose[6]
-        
+        msg = CfLog()
+        '''
+        msg.m1 = float(data["motor.m1"])
+        msg.m2 = float(data["motor.m2"])
+        msg.m3 = float(data["motor.m3"])
+        msg.m4 = float(data["motor.m4"])
+        msg.battery = float(data["pm.vbatMV"])
+        msg.quatx = float(latest_pose[3])
+        msg.quaty = float(latest_pose[4])
+        msg.quatz = float(latest_pose[5])
+        msg.quatw = float(latest_pose[6])
+        '''
+        msg.x = float(latest_pose[0])
+        msg.y = float(latest_pose[1])
+        msg.z = float(latest_pose[2])
+
+        if self.setPointControl:
+            msg.roll_signal = float(self.roll)
+            msg.pitch_signal = float(self.pitch)
+            msg.yaw_signal = float(self.yaw)
+            msg.thrust_signal = float(self.thrust)
+            self.log_file.write(f'{latest_pose[2]}\n')
+        else:
+            msg.roll_signal = 0.0
+            msg.pitch_signal = 0.0
+            msg.yaw_signal = 0.0
+            msg.thrust_signal = float(data['controller.cmd_thrust'])
+
+        self.prevThrust = data['controller.cmd_thrust']
+        msg.battery_voltage = float(data['pm.vbatMV'])
         # Publish the log data
         self.publisher.publish(msg)
+        #print(data['controller.cmd_thrust'])
+        #print((latest_pose[2]-self.prevZ)*1000)
+        self.prevZ = latest_pose[2]
 
 
 class MocapWrapper(Thread):

@@ -1,0 +1,44 @@
+rosbag2_bagfile_information:
+  version: 9
+  storage_identifier: mcap
+  duration:
+    nanoseconds: 19866551210
+  starting_time:
+    nanoseconds_since_epoch: 1744116660961756414
+  message_count: 995
+  topics_with_message_count:
+    - topic_metadata:
+        name: /CfLog
+        type: interfaces/msg/CfLog
+        serialization_format: cdr
+        offered_qos_profiles:
+          - history: unknown
+            depth: 0
+            reliability: reliable
+            durability: volatile
+            deadline:
+              sec: 9223372036
+              nsec: 854775807
+            lifespan:
+              sec: 9223372036
+              nsec: 854775807
+            liveliness: automatic
+            liveliness_lease_duration:
+              sec: 9223372036
+              nsec: 854775807
+            avoid_ros_namespace_conventions: false
+        type_description_hash: RIHS01_ebf46c9f1a0a365e38e16a1216a4f3f8d33c0688f75c933683fc400175225b4d
+      message_count: 995
+  compression_format: ""
+  compression_mode: ""
+  relative_file_paths:
+    - rosbag2_2025_04_08-14_50_41_0.mcap
+  files:
+    - path: rosbag2_2025_04_08-14_50_41_0.mcap
+      starting_time:
+        nanoseconds_since_epoch: 1744116660961756414
+      duration:
+        nanoseconds: 19866551210
+      message_count: 995
+  custom_data: ~
+  ros_distro: jazzy
