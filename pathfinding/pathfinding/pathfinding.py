@@ -1,8 +1,12 @@
 import rclpy
+import os
+from ament_index_python.packages import get_package_share_directory
 from rclpy.node import Node
 
 from std_msgs.msg import Int32
 from interfaces.msg import PoseRPY
+
+pathfinding_path = os.path.join(get_package_share_directory('pathfinding'), 'waypoints.txt')
 
 class Pathfinding(Node):
     
@@ -14,7 +18,7 @@ class Pathfinding(Node):
         #get waypoints from txt file
         self.waypoints = []
         
-        with open('/home/jonas/ros2_ws_p4/src/Crazyflie-P4-Group-460/pathfinding/pathfinding/waypoints.txt', 'r') as file:
+        with open(pathfinding_path, 'r') as file:
             for line in file:
                 coords = line.strip().split(',')
                 if len(coords) == 3:
