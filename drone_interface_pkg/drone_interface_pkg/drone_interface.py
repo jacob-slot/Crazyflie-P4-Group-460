@@ -14,6 +14,7 @@ from cflib.utils.reset_estimator import reset_estimator
 # Import custom message types
 from interfaces.msg import RPYT
 from interfaces.msg import CfLog
+from std_msgs.msg import Bool
 
 vicon = True
 
@@ -29,21 +30,20 @@ orientation_std_dev = 8.0e-3
 class DroneInterfaceNode(Node):
     def __init__(self, myFlie):
         self.myFlie = myFlie
-        #self.roll = 0
-        #self.pitch = 0
-        #self.yaw = 0
-        #self.thrust = 46550
-        #self.setPointControl = False
+        self.rpyt = np.zeros(4)
         self.prev_thrust = 0
+        self.setpoint_control = False
 
         # Initialize the node with the name 'drone_interface'
         super().__init__('drone_interface')
 
         # Create the subscription to the control signals topic
-        self.subscription = self.create_subscription(RPYT, 'control_signals', self.listener_callback, 10)
+        self.rpyt_subscription = self.create_subscription(RPYT, 'control_signals', self.signal_received, 10)
+        self.land_subscription = self.create_subscription(Bool, 'land', self.land_drone, 10)
         
-        # Create the publisher for the CfLog topic
-        self.publisher = self.create_publisher(CfLog, 'CfLog', 10)
+        # Create the publishers
+        self.log_publisher = self.create_publisher(CfLog, 'CfLog', 10)
+        self.ready_publisher = self.create_publisher(Bool, 'ready', 10)
 
         # Set up logging
         logconf = LogConfig(name='Motors', period_in_ms=20)
@@ -54,13 +54,8 @@ class DroneInterfaceNode(Node):
         logconf.add_variable('controller.yaw', 'float')
 
         myFlie.log.add_config(logconf)
-        logconf.data_received_cb.add_callback(self.log_data_callback)
+        logconf.data_received_cb.add_callback(self.publish_log_data)
         logconf.start()
-        
-        # create new txt file with unique name
-        #timestamp = time.strftime("%Y%m%d-%H%M%S")
-        #self.log_file = open(f'log_{timestamp}.txt', 'w')
-        #self.log_file.write(str(self.thrust) + '\n')
 
         # Send zero setpoint to the Crazyflie to unlock thrust protection
         self.myFlie.commander.send_setpoint(0, 0, 0, 0)
@@ -68,38 +63,30 @@ class DroneInterfaceNode(Node):
         self.myFlie.commander.send_notify_setpoint_stop()
         time.sleep(0.1)
 
-        myFlie.high_level_commander.takeoff(0.5, 2.0)
+        myFlie.high_level_commander.takeoff(1, 2.0)
         time.sleep(3.0)
-        myFlie.high_level_commander.go_to(-1, 0, 1, 0, 2, relative=False)
-        time.sleep(3.0)
+        myFlie.high_level_commander.go_to(0, 0, 1, 0, 1, relative=False)
+        time.sleep(1.2)
 
-        for i in range (3):
-            for i in range(15):
-                myFlie.commander.send_setpoint(0, 8.0, 0, int(self.prev_thrust))
-                time.sleep(0.1)
+        self.ready_publisher.publish(Bool(data=True))
+        self.get_logger().info('Crazyflie is ready and flying.')
 
-            myFlie.commander.send_setpoint(0, -10, 0, int(self.prev_thrust))
-            time.sleep(0.1)
-            myFlie.commander.send_notify_setpoint_stop()
-            #time.sleep(0.05)
-            myFlie.high_level_commander.go_to(-1, 0, 1, 0, 5, relative=False)
-            time.sleep(6.0)
-
-        self.land_drone()
-
-        #self.create_timer(0.1, self.send_rpyt)
-        #self.create_timer(6, self.back_to_center)
+        self.create_timer(0.1, self.send_rpyt)
         
 
     def send_rpyt(self):
-        #self.setPointControl = True
-        self.myFlie.commander.send_setpoint(self.roll, self.pitch, self.yaw, self.thrust)
+        if self.setpoint_control:
+            self.myFlie.commander.send_setpoint(self.roll, self.pitch, self.yaw, self.thrust)
 
-    def land_drone(self):
-        #self.setPointControl = False
+    def land_drone(self, msg):
+        if msg.data == False: return
+
+        self.setpoint_control = False
         self.myFlie.commander.send_notify_setpoint_stop()
-        self.myFlie.high_level_commander.land(0.0, 5.0)
-        time.sleep(6.0)
+        self.myFlie.high_level_commander.go_to(0, 0, 0.5, 0, 4, relative=False)
+        time.sleep(5.0)
+        self.myFlie.high_level_commander.land(0.0, 3.0)
+        time.sleep(4.0)
 
         # end the link
         self.myFlie.high_level_commander.stop()
@@ -110,19 +97,18 @@ class DroneInterfaceNode(Node):
         rclpy.shutdown()
         exit(0)
 
-    def listener_callback(self, msg):
+    def signal_received(self, msg):
+        self.setpoint_control = True
 
-        # Convert the RPYT message to the Crazyflie setpoint, which is in degrees and integer thrust
-        self.thrust = int(msg.thrust*1000)
-        # convert degrees to radians
-        self.roll = msg.roll * 180 / np.pi
-        self.pitch = msg.pitch * 180 / np.pi
-        self.yaw = msg.yaw * 180 / np.pi
+        # Convert the RPYT message to the Crazyflie setpoint.
+        self.rpyt[0] = float(msg.roll)
+        self.rpyt[1] = float(msg.pitch)
+        self.rpyt[2] = float(msg.yaw)
+        self.rpyt[3] = int(msg.thrust*1000)
 
         self.get_logger().info(f'Received setpoint: roll={self.roll}, pitch={self.pitch}, yaw={self.yaw}, thrust={self.thrust}')
         
-    def log_data_callback(self, timestamp, data, x):
-
+    def publish_log_data(self, timestamp, data, x):
         msg = CfLog()
 
         # Get position data from vicon
@@ -145,7 +131,7 @@ class DroneInterfaceNode(Node):
         self.prev_thrust = data['controller.cmd_thrust']
 
         # Publish the log data
-        self.publisher.publish(msg)
+        self.log_publisher.publish(msg)
 
 
 class MocapWrapper(Thread):
