@@ -4,7 +4,7 @@ from rclpy.node import Node
 from interfaces.msg import RPYT
 from interfaces.msg import PoseRPY
 from geometry_msgs.msg import Pose
-
+from std_msgs.msg import Bool
 
 
 
@@ -20,6 +20,8 @@ class Simulator(Node):
         self.position_publisher = self.create_publisher(PoseRPY, 'location', 10)
 
         self.plot_publisher = self.create_publisher(Pose,'plot',10)
+
+        self.ready_publisher = self.create_publisher(Bool,'ready',10)
 
         # Create the subscriptions for the reference and pose
         self.command_subscription = self.create_subscription(
@@ -49,6 +51,7 @@ class Simulator(Node):
 
 
         self.position_publisher.publish(self.start_pose)
+        self.ready_publisher.publish(Bool(data=True))
 
 
     def listener_callback(self, msg):
@@ -57,6 +60,7 @@ class Simulator(Node):
         plot = Pose()
 
         g = 9.82
+        m = 0.036
 
         roll = msg.roll
         pitch = msg.pitch
@@ -65,7 +69,7 @@ class Simulator(Node):
 
         xdd = (g * pitch)
         ydd = (g * roll)
-        zdd = (thrust/ 0.036) - 9.82
+        zdd = (thrust / m) - g
 
         # Get the current time
         current_time = self.get_clock().now().nanoseconds/1000000000
@@ -122,7 +126,7 @@ def main(args=None):
     # Destroy the node explicitly
     # (optional - otherwise it will be done automatically
     # when the garbage collector destroys the node object)
-    Simulator.destroy_node()
+    Simulation.destroy_node()
     rclpy.shutdown()
 
 

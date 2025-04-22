@@ -5,6 +5,7 @@ from rclpy.node import Node
 
 from std_msgs.msg import Int32
 from interfaces.msg import PoseRPY
+from std_msgs.msg import Bool
 
 pathfinding_path = os.path.join(get_package_share_directory('pathfinding'), 'waypoints.txt')
 
@@ -14,6 +15,9 @@ class Pathfinding(Node):
         super().__init__('pathfinding_coords')
         self.get_logger().info('Pathfinding node has been started.')
         self.publisher = self.create_publisher(PoseRPY, 'ref_pose', 10)
+
+        self.land_publisher = self.create_publisher(Bool, 'land', 10)
+
         self.subscriber = self.create_subscription(Int32, 'next_ref', self.listen_position, 10)
         #get waypoints from txt file
         self.waypoints = []
@@ -44,15 +48,8 @@ class Pathfinding(Node):
 
         if len(self.waypoints) == self.array_index:
             #If all waypoints have been achieved, send 0,0,z to return home
-            self.publisher.publish(PoseRPY(
-            x=0.0,
-            y=0.0,
-            z=self.waypoints[1][2],#extract z value
-            roll=0.0,
-            pitch=0.0,
-            yaw=0.0
-            ))
-            self.get_logger().info('ALL WAYPOINTS COMPLETED - (0.0.z) sent')
+            self.publisher.publish(Bool(data=True))
+            raise SystemExit('All waypoints have been achieved, landing now.')
         else:
             self.publisher.publish(PoseRPY(
             x=self.waypoints[self.array_index][0],

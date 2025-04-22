@@ -84,7 +84,7 @@ class Controller(Node):
         #self.get_logger().info('Error: "%s"' % error[0])
 
         # If within error margin, send the next reference
-        if abs(error[0]) < 0.1 and abs(error[1]) < 0.1 and abs(error[2]) < 0.1 and self.dt > 30:
+        if abs(error[0]) < 0.1 and abs(error[1]) < 0.1 and abs(error[2]) < 0.1 and self.dt > 3:
             self.position_number += 1
             msg = Int32()
 
