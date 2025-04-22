@@ -59,9 +59,9 @@ class Controller(Node):
 
     def listener_callback_pose(self, msg):
         """ Save the last pose and update the command signal """
-        self.last_pose[0] = msg.position.x
-        self.last_pose[1] = msg.position.y
-        self.last_pose[2] = msg.position.z
+        self.last_pose[0] = msg.x
+        self.last_pose[1] = msg.y
+        self.last_pose[2] = msg.z
 
         #self.get_logger().info('Pose: "%s"' % self.last_pose[0])
         if self.first_ref == True:
@@ -84,7 +84,7 @@ class Controller(Node):
         #self.get_logger().info('Error: "%s"' % error[0])
 
         # If within error margin, send the next reference
-        if abs(error[0]) < 0.1 and abs(error[1]) < 0.1 and abs(error[2]) < 0.1 and self.dt > 3:
+        if abs(error[0]) < 0.1 and abs(error[1]) < 0.1 and abs(error[2]) < 0.1 and self.dt > 30:
             self.position_number += 1
             msg = Int32()
 

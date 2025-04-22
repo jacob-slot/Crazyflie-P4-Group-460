@@ -22,11 +22,13 @@ class Controller(Node):
         self.last_ref = PoseRPY()
         self.last_pose = PoseRPY()
         self.last_error = [0, 0, 0]
+        self.last_vel_error = [0, 0, 0]
         self.first_ref = False
 
         # Initialize the integral term for the PID controller
         self.start_time = self.get_clock().now().nanoseconds/1000000000
         self.integral = [0, 0, 0]
+        self.vel_integral = [0, 0, 0]
 
         # Create the publisher for the control signals
         self.control_publisher = self.create_publisher(RPYT, 'control_signals', 10)
@@ -90,10 +92,11 @@ class Controller(Node):
         """
 
         #Initialize the control signal and the PID gains
+        vel_ref = [0, 0 ,0]
         control_signal = [0, 0, 0]
-        Kp = [ 1.0, 1.0, 1.0 ]
-        Ki = [ 0.0, 0.0, 0.0 ]
-        Kd = [ 0.0, 0.0, 0.0 ]
+        Kp = [ 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+        Ki = [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        Kd = [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
         #Calculate the time difference
         time = self.get_clock().now().nanoseconds/1000000000
@@ -112,8 +115,23 @@ class Controller(Node):
 
         #Calculate the control signals for roll, pitch and thrust
         for i in [1,0,2]:
-            control_signal[i] = Kp[i]*error[i] + Ki[i]*self.integral[i] + Kd[i]*(error[i] - self.last_error[i])/dt
+            vel_ref[i] = Kp[i]*error[i] + Ki[i]*self.integral[i] + Kd[i]*(error[i] - self.last_error[i])/dt
 
+        last_vel = [self.last_pose.x_vel, self.last_pose.y_vel, self.last_pose.z_vel]
+        vel_error = [0, 0, 0]
+        for i in [1,0,2]:
+            vel_error[i] = vel_ref[i] - last_vel[i]
+            self.vel_integral[i] += vel_error[i]*dt
+
+        for i in [1,0,2]:
+            control_signal[i] = Kp[i+3]*vel_error[i] + Ki[i+3]*self.vel_integral[i] + Kd[i+3]*(vel_error[i] - self.last_vel_error[i])/dt
+            if control_signal[i] > 15.0 and i != 2:
+                control_signal[i] = 15.0
+            if control_signal[i] < -15.0 and i != 2:
+                control_signal[i] = -15.0
+
+
+        self.last_vel_error = vel_error
         self.last_error = error
 
         return control_signal
