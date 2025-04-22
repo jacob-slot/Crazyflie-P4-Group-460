@@ -14,7 +14,6 @@
 
   <depend>rclcpp</depend>
   <depend>geometry_msgs</depend>
-  <depend>gz-sim7</depend>
 
   <export>
     <build_type>ament_cmake</build_type>
