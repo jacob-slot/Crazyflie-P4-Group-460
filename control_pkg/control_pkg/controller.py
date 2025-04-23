@@ -138,8 +138,8 @@ class Controller(Node):
                 control_signal[i] = -10.0
             if control_signal[i] < 0.0 and i == 2:
                 control_signal[i] = 0.0
-            if control_signal[i] > 10.0 and i == 2:
-                control_signal[i] = 10.0
+            if control_signal[i] > 1.2 and i == 2:
+                control_signal[i] = 1.2
             self.get_logger().info('Control signal %d: "%s"' % (i, control_signal[i]))
 
 
