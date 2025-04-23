@@ -104,9 +104,14 @@ class DroneInterfaceNode(Node):
         self.rpyt[0] = float(msg.roll)
         self.rpyt[1] = float(msg.pitch)
         self.rpyt[2] = float(msg.yaw)
-        self.rpyt[3] = int(msg.thrust*1000)
-
-        self.get_logger().info(f'Received setpoint: roll={self.roll}, pitch={self.pitch}, yaw={self.yaw}, thrust={self.thrust}')
+        
+        # Map the range 0 to 0.684 to a new range of 10000 to 60000
+        thrust = float(msg.thrust)
+        if thrust < 0.684:
+            self.rpyt[3] = int(thrust * (60000 - 10000) / (0.684 - 0) + 10000)
+        else:
+            print('Thrust value is too high. Setting thrust to 60000.')
+            self.rpyt[3] = 60000
         
     def publish_log_data(self, timestamp, data, x):
         msg = CfLog()
