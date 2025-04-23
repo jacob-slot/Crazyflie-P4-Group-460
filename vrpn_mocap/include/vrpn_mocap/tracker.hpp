@@ -35,6 +35,8 @@
 #include "geometry_msgs/msg/accel_stamped.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "geometry_msgs/msg/twist_stamped.hpp"
+#include "interfaces/msg/pose_rpy.hpp"
+
 #include "rclcpp/qos.hpp"
 #include "rclcpp/rclcpp.hpp"
 
@@ -109,8 +111,19 @@ public:
   std::vector<PublisherT<geometry_msgs::msg::PoseStamped>::SharedPtr> pose_pubs_;
   std::vector<PublisherT<geometry_msgs::msg::TwistStamped>::SharedPtr> twist_pubs_;
   std::vector<PublisherT<geometry_msgs::msg::AccelStamped>::SharedPtr> accel_pubs_;
+  std::vector<PublisherT<interfaces::msg::PoseRPY>::SharedPtr> pose_rpy_pubs_;
 
   rclcpp::TimerBase::SharedPtr timer_;
+
+  // Add a structure to store the latest velocity
+  struct Velocity {
+    double vx = 0.0;
+    double vy = 0.0;
+    double vz = 0.0;
+  };
+
+  // Add a member variable to store the latest velocity
+  Velocity latest_velocity_;
 
   template<typename MsgT>
   typename PublisherT<MsgT>::SharedPtr GetOrCreatePublisher(
