@@ -5,7 +5,7 @@ from interfaces.msg import RPYT
 from interfaces.msg import PoseRPY
 from geometry_msgs.msg import Pose
 from std_msgs.msg import Bool
-
+import time
 
 
 
@@ -50,14 +50,16 @@ class Simulator(Node):
         self.zd = 0.0
 
 
-        self.position_publisher.publish(self.start_pose)
+        
         self.ready_publisher.publish(Bool(data=True))
+        time.sleep(3)
+        self.position_publisher.publish(self.start_pose)
 
 
     def listener_callback(self, msg):
 
         position = PoseRPY()
-        plot = Pose()
+        plotd = Pose()
 
         g = 9.82
         m = 0.036
@@ -95,19 +97,19 @@ class Simulator(Node):
         position.pitch = pitch
         position.yaw = yaw
 
-        plot.position.x = self.x
-        plot.position.y = self.y
-        plot.position.z = self.z
-        plot.orientation.x = roll
-        plot.orientation.y = pitch
-        plot.orientation.z = yaw
+        plotd.position.x = self.x
+        plotd.position.y = self.y
+        plotd.position.z = self.z
+        plotd.orientation.x = roll
+        plotd.orientation.y = pitch
+        plotd.orientation.z = yaw
 
         self.get_logger().info('Publishing x: "%s"' % position.x)
         self.get_logger().info('Publishing y: "%s"' % position.y)
         self.get_logger().info('Publishing z: "%s"' % position.z)
 
         self.position_publisher.publish(position)
-        self.plot_publisher.publish(plot)
+        self.plot_publisher.publish(plotd)
 
         
 
