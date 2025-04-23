@@ -21,13 +21,18 @@
 // SOFTWARE.
 
 #include "vrpn_mocap/tracker.hpp"
+#include "interfaces/msg/pose_rpy.hpp"
 
-#include <Eigen/Geometry>
+
 #include <chrono>
 #include <functional>
 #include <memory>
 #include <regex>
 #include <string>
+
+#include <Eigen/Geometry>
+#include <Eigen/StdVector>
+
 
 namespace vrpn_mocap
 {
@@ -35,6 +40,7 @@ namespace vrpn_mocap
 using geometry_msgs::msg::AccelStamped;
 using geometry_msgs::msg::PoseStamped;
 using geometry_msgs::msg::TwistStamped;
+using interfaces::msg::PoseRPY;
 using namespace std::chrono_literals;
 
 std::string Tracker::ValidNodeName(const std::string & tracker_name)
@@ -61,6 +67,7 @@ Tracker::Tracker(const std::string & tracker_name)
   // start main loop when instantiated as a standalone node
   const double update_freq = this->declare_parameter("update_freq", 100.);
   timer_ = this->create_wall_timer(1s / update_freq, std::bind(&Tracker::MainLoop, this));
+
 }
 
 Tracker::Tracker(
@@ -110,15 +117,24 @@ builtin_interfaces::msg::Time Tracker::GetTimestamp(struct timeval vrpn_timestam
   return this->get_clock()->now();
 }
 
+// Add a shared structure to store velocity in the Tracker class
+struct Velocity {
+  double vx = 0.0;
+  double vy = 0.0;
+  double vz = 0.0;
+};
+Velocity latest_velocity_;
+
+// Update HandlePose to include velocity from the shared structure
 void VRPN_CALLBACK Tracker::HandlePose(void * data, const vrpn_TRACKERCB tracker_pose)
 {
   Tracker * tracker = static_cast<Tracker *>(data);
 
-  // lazy initialization of publisher
+  // Lazy initialization of PoseStamped publisher
   auto pub = tracker->GetOrCreatePublisher<PoseStamped>(
     static_cast<size_t>(tracker_pose.sensor), "pose", &tracker->pose_pubs_);
 
-  // populate message
+  // Populate PoseStamped message
   PoseStamped msg;
   msg.header.frame_id = tracker->frame_id_;
   msg.header.stamp = tracker->GetTimestamp(tracker_pose.msg_time);
@@ -133,17 +149,49 @@ void VRPN_CALLBACK Tracker::HandlePose(void * data, const vrpn_TRACKERCB tracker
   msg.pose.orientation.w = tracker_pose.quat[3];
 
   pub->publish(msg);
+
+  // Lazy initialization of PoseStamped publisher
+  auto pose_rpy_pub = tracker->GetOrCreatePublisher<PoseRPY>(
+    static_cast<size_t>(tracker_pose.sensor), "pose_rpy", &tracker->pose_rpy_pubs_);
+
+  // Populate and publish PoseRPY message
+  PoseRPY pose_rpy_msg;
+  pose_rpy_msg.x = tracker_pose.pos[0];
+  pose_rpy_msg.y = tracker_pose.pos[1];
+  pose_rpy_msg.z = tracker_pose.pos[2];
+
+  // Add velocity fields from the shared structure
+  pose_rpy_msg.x_vel = tracker->latest_velocity_.vx;
+  pose_rpy_msg.y_vel = tracker->latest_velocity_.vy;
+  pose_rpy_msg.z_vel = tracker->latest_velocity_.vz;
+
+  // Convert quaternion to roll, pitch, yaw
+  Eigen::Quaterniond quat(
+    tracker_pose.quat[3], tracker_pose.quat[0], tracker_pose.quat[1], tracker_pose.quat[2]);
+  Eigen::Vector3d euler = quat.toRotationMatrix().eulerAngles(0, 1, 2);
+
+  pose_rpy_msg.roll = euler[0];
+  pose_rpy_msg.pitch = euler[1];
+  pose_rpy_msg.yaw = euler[2];
+
+  pose_rpy_pub->publish(pose_rpy_msg);
 }
 
+// Update HandleTwist to store velocity in the shared structure
 void VRPN_CALLBACK Tracker::HandleTwist(void * data, const vrpn_TRACKERVELCB tracker_twist)
 {
   Tracker * tracker = static_cast<Tracker *>(data);
 
-  // lazy initialization of publisher
+  // Store the latest velocity
+  tracker->latest_velocity_.vx = tracker_twist.vel[0];
+  tracker->latest_velocity_.vy = tracker_twist.vel[1];
+  tracker->latest_velocity_.vz = tracker_twist.vel[2];
+
+  // Lazy initialization of publisher
   auto pub = tracker->GetOrCreatePublisher<TwistStamped>(
     static_cast<size_t>(tracker_twist.sensor), "twist", &tracker->twist_pubs_);
 
-  // populate message
+  // Populate message
   TwistStamped msg;
   msg.header.frame_id = tracker->frame_id_;
   msg.header.stamp = tracker->GetTimestamp(tracker_twist.msg_time);
@@ -192,5 +240,8 @@ void VRPN_CALLBACK Tracker::HandleAccel(void * data, const vrpn_TRACKERACCCB tra
 
   pub->publish(msg);
 }
+
+// Add a publisher for PoseRPY in the Tracker class
+rclcpp::Publisher<PoseRPY>::SharedPtr pose_rpy_pub_;
 
 }  // namespace vrpn_mocap
