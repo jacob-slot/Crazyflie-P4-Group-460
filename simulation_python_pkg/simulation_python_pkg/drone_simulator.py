@@ -14,7 +14,7 @@ class Simulator(Node):
     def __init__(self):
         super().__init__('Simulator')
 
-        self.start_time = self.get_clock().now().nanoseconds/1000000000
+        
 
         # Create the publisher for the control signals
         self.position_publisher = self.create_publisher(PoseRPY, 'location', 10)
@@ -53,10 +53,12 @@ class Simulator(Node):
         
         self.ready_publisher.publish(Bool(data=True))
         time.sleep(3)
+        self.start_time = self.get_clock().now().nanoseconds/1000000000
         self.position_publisher.publish(self.start_pose)
 
 
     def listener_callback(self, msg):
+
 
         position = PoseRPY()
         plotd = Pose()
@@ -79,13 +81,13 @@ class Simulator(Node):
         # Calculate the time step
         time_step = current_time - self.start_time
         self.start_time = current_time
-        # Get the current position
+        # Get the current position  
         self.x += (0.5 * xdd * time_step**2)
         self.y += (0.5 * ydd * time_step**2)
         self.z += (0.5 * zdd * time_step**2)
-        self.xd += (xdd * time_step)
-        self.yd += (ydd * time_step)
-        self.zd += (zdd * time_step)
+        self.xd += (1.0 * xdd * time_step**1)
+        self.yd += (1.0 * ydd * time_step**1)
+        self.zd += (1.0 * zdd * time_step**1)
 
         position.x = self.x
         position.y = self.y
@@ -110,6 +112,7 @@ class Simulator(Node):
 
         self.position_publisher.publish(position)
         self.plot_publisher.publish(plotd)
+        time.sleep(0.1)
 
         
 

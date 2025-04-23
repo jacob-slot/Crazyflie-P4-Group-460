@@ -111,10 +111,10 @@ class Controller(Node):
             error[i] = ref[i] - pose[i]
             #Calculate the integral term
             self.integral[i] += error[i]*dt
-            if self.integral[i] > 10.0:
-                self.integral[i] = 10.0
-            if self.integral[i] < -10.0:
-                self.integral[i] = -10.0
+            if self.integral[i] > 100.0:
+                self.integral[i] = 100.0
+            if self.integral[i] < -100.0:
+                self.integral[i] = -100.0
 
         vel_error = [0, 0, 0]
         last_vel = [self.last_pose.x_vel, self.last_pose.y_vel, self.last_pose.z_vel]
@@ -138,14 +138,15 @@ class Controller(Node):
                 control_signal[i] = -10.0
             if control_signal[i] < 0.0 and i == 2:
                 control_signal[i] = 0.0
-            if control_signal[i] > 1.2 and i == 2:
-                control_signal[i] = 1.2
+            if control_signal[i] > 0.5 and i == 2:
+                control_signal[i] = 0.5
             self.get_logger().info('Control signal %d: "%s"' % (i, control_signal[i]))
 
 
 
         self.last_vel_error = vel_error
         self.last_error = error
+        
 
         return control_signal
     
