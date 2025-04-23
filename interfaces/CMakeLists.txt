@@ -26,11 +26,14 @@ endif()
 find_package(geometry_msgs REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
+
+ament_export_dependencies(rosidl_default_runtime)
+
+
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/RPYT.msg"
   "msg/PoseRPY.msg"
   "msg/CfLog.msg"
-  DEPENDENCIES geometry_msgs # Add packages that above messages depend on, in this case geometry_msgs for Sphere.msg
 )
 
 ament_package()
