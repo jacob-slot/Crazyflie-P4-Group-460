@@ -1,4 +1,6 @@
 #!/bin/bash
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+cd $SCRIPT_DIR
 
 # Create a virtual environment
 python3 -m venv .venv
@@ -25,6 +27,7 @@ pip install pyyaml
 
 # Colcon build
 cd ../..
+rosdep install -i --from-path src --rosdistro jazzy -y
 colcon build --base-path src/Crazyflie-P4-Group-460/
 source install/setup.bash # This or local_setup.bash, i dont know the difference
 cd src/Crazyflie-P4-Group-460/
