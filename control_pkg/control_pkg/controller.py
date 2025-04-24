@@ -6,7 +6,7 @@ from rclpy.node import Node
 from interfaces.msg import RPYT
 from interfaces.msg import PoseRPY
 from std_msgs.msg import Bool
-
+from rclpy.qos import QoSProfile, QoSReliabilityPolicy
 
 
 
@@ -17,6 +17,9 @@ class Controller(Node):
 
     def __init__(self):
         super().__init__('Controller')
+
+        qos_profile = QoSProfile(depth=10)  # You can adjust the depth if needed
+        qos_profile.reliability = QoSReliabilityPolicy.RELIABLE
 
 
         # Initialize the last reference, pose and error variables
@@ -40,12 +43,12 @@ class Controller(Node):
             PoseRPY,
             'ref_pose',
             self.listener_callback_ref,
-            10)
+            qos_profile)
         self.ref_subscription 
 
         self.pose_subscription = self.create_subscription(
             PoseRPY,
-            'vrpn/Crazyflie/pose_rpy',
+            'vrpn_mocap/Crazyflie/pose_rpy',
             self.listener_callback_pose,
             10)
         self.pose_subscription
@@ -139,8 +142,8 @@ class Controller(Node):
                 control_signal[i] = -10.0
             if control_signal[i] < 0.0 and i == 2:
                 control_signal[i] = 0.0
-            if control_signal[i] > 0.5 and i == 2:
-                control_signal[i] = 0.5
+            # if control_signal[i] > 10.0 and i == 2:
+            #     control_signal[i] = 10.0
             self.get_logger().info('Control signal %d: "%s"' % (i, control_signal[i]))
 
 

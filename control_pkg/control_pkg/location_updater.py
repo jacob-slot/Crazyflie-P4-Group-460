@@ -6,6 +6,7 @@ from rclpy.node import Node
 from interfaces.msg import PoseRPY
 from std_msgs.msg import Int32
 from geometry_msgs.msg import Pose
+from rclpy.qos import QoSProfile, QoSReliabilityPolicy
 
 
 
@@ -15,6 +16,9 @@ class Controller(Node):
     
     def __init__(self):
         super().__init__('Controller')
+
+        qos_profile = QoSProfile(depth=10)  # You can adjust the depth if needed
+        qos_profile.reliability = QoSReliabilityPolicy.RELIABLE
 
         # Initialize the last reference, pose and error variables
         self.last_ref = [0, 0, 0]
@@ -36,9 +40,9 @@ class Controller(Node):
 
         self.pose_subscription = self.create_subscription(
             PoseRPY,
-            'vrpn/Crazyflie/pose_rpy',
+            'vrpn_mocap/Crazyflie/pose_rpy',
             self.listener_callback_pose,
-            10)
+            qos_profile)
         self.pose_subscription
 
         self.timer = self.create_timer(1, self.timer_callback)

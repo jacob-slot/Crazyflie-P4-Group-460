@@ -171,9 +171,9 @@ void VRPN_CALLBACK Tracker::HandlePose(void * data, const vrpn_TRACKERCB tracker
     tracker_pose.quat[3], tracker_pose.quat[0], tracker_pose.quat[1], tracker_pose.quat[2]);
   Eigen::Vector3d euler = quat.toRotationMatrix().eulerAngles(0, 1, 2);
 
-  pose_rpy_msg.roll = euler[0];
-  pose_rpy_msg.pitch = euler[1];
-  pose_rpy_msg.yaw = euler[2];
+  pose_rpy_msg.roll = (euler[0]*3.14)/180;
+  pose_rpy_msg.pitch = (euler[1]*3.14)/180;
+  pose_rpy_msg.yaw = (euler[2]*3.14)/180;
 
   pose_rpy_pub->publish(pose_rpy_msg);
 }
