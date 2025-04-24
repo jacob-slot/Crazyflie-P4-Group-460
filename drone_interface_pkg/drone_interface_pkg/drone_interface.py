@@ -30,7 +30,7 @@ orientation_std_dev = 8.0e-3
 class DroneInterfaceNode(Node):
     def __init__(self, myFlie):
         self.myFlie = myFlie
-        self.rpyt = np.zeros(4)
+        self.rpyt = np.array([0.0, 0.0, 0.0, 0.0], dtype=np.float32)
         self.prev_thrust = 0
         self.setpoint_control = False
 
@@ -76,7 +76,7 @@ class DroneInterfaceNode(Node):
 
     def send_rpyt(self):
         if self.setpoint_control:
-            self.myFlie.commander.send_setpoint(self.rpyt[0], self.rpyt[1], self.rpyt[2], self.rpyt[3])
+            self.myFlie.commander.send_setpoint(self.rpyt[0], self.rpyt[1], self.rpyt[2], int(self.rpyt[3]))
 
     def land_drone(self, msg):
         if msg.data == False: return
@@ -109,7 +109,7 @@ class DroneInterfaceNode(Node):
         # Map the range 0 to 1.2 to a new range of 10000 to 60000
         thrust = float(msg.thrust)
         thrust = (thrust - 0) * (60000 - 10000) / (1.2 - 0) + 10000
-        thrust = int(thrust)
+        self.rpyt[3] = thrust
         
     def publish_log_data(self, timestamp, data, x):
         msg = CfLog()
