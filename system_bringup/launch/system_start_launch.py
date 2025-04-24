@@ -5,7 +5,8 @@ from launch.actions import IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.launch_description_sources import AnyLaunchDescriptionSource
 from launch_ros.actions import Node
-import xacro
+from launch.actions import DeclareLaunchArgument
+from launch.substitutions import LaunchConfiguration
 
 def generate_launch_description():
 
@@ -25,14 +26,6 @@ def generate_launch_description():
         arguments=['-d', rviz_config_path]
     )
     
-    # ROS 2 bag recording node
-    rosbag_record_node = Node(
-        package='ros2',
-        executable='bag',
-        name='rosbag_record',
-        output='screen',
-        arguments=['record', '/vrpn_mocap/Crazyflie/pose_rpy', '/CfLog', '/control_signals']
-    )
     
     
     # vrpn_mocap
@@ -76,7 +69,6 @@ def generate_launch_description():
         node_pathfinding,
         control_node,
         drone_interface_node,
-        rosbag_record_node,
         
     ])
 
