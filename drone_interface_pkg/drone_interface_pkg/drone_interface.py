@@ -12,8 +12,8 @@ from cflib.utils import uri_helper
 from cflib.utils.reset_estimator import reset_estimator
 
 # Import custom message types
-from interfaces.msg import RPYT
-from interfaces.msg import CfLog
+from interfaces.msg import RPYT # type: ignore
+from interfaces.msg import CfLog # type: ignore
 from std_msgs.msg import Bool
 
 vicon = True
@@ -98,6 +98,7 @@ class DroneInterfaceNode(Node):
         exit(0)
 
     def signal_received(self, msg):
+        self.get_logger().info('Received RPYT signal: roll: {}, pitch: {}, yaw: {}, thrust: {}'.format(msg.roll, msg.pitch, msg.yaw, msg.thrust))
         self.setpoint_control = True
 
         # Convert the RPYT message to the Crazyflie setpoint.
