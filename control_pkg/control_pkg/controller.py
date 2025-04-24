@@ -45,7 +45,7 @@ class Controller(Node):
 
         self.pose_subscription = self.create_subscription(
             PoseRPY,
-            'location',
+            'pose_rpy',
             self.listener_callback_pose,
             10)
         self.pose_subscription
@@ -65,7 +65,8 @@ class Controller(Node):
         self.land_subscription
 
     def listener_callback_land(self, msg):
-        raise SystemExit('Landing now.')
+        if msg == True:
+            raise SystemExit('Landing now.')
 
     def listener_callback_ready(self, msg):
         self.ready = msg.data
