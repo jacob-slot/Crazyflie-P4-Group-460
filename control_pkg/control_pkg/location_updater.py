@@ -38,6 +38,11 @@ class Controller(Node):
             10)
         self.ref_subscription 
 
+        # Create a QoS profile for Best Effort
+        qos_profile = QoSProfile(
+            reliability=QoSReliabilityPolicy.BEST_EFFORT
+        )
+
         self.pose_subscription = self.create_subscription(
             PoseRPY,
             'vrpn_mocap/Crazyflie/pose_rpy',
