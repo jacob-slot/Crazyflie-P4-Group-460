@@ -7,7 +7,7 @@ from interfaces.msg import RPYT
 from interfaces.msg import PoseRPY
 from std_msgs.msg import Bool
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy
-
+import time
 
 
 
@@ -143,15 +143,15 @@ class Controller(Node):
                 self.vel_integral[i] = -10.0
 
             control_signal[i] = Kp[i+3]*vel_error[i] + Ki[i+3]*self.vel_integral[i] + Kd[i+3]*(vel_error[i] - self.last_vel_error[i])/dt
-            if control_signal[i] > 10.0 and i != 2:
-                control_signal[i] = 10.0
-            if control_signal[i] < -10.0 and i != 2:
-                control_signal[i] = -10.0
+            if control_signal[i] > 5.0 and i != 2:
+                control_signal[i] = 5.0
+            if control_signal[i] < -5.0 and i != 2:
+                control_signal[i] = -5.0
             if control_signal[i] < 0.0 and i == 2:
                 control_signal[i] = 0.0
             # if control_signal[i] > 10.0 and i == 2:
             #     control_signal[i] = 10.0
-            self.get_logger().info('Control signal %d: "%s"' % (i, control_signal[i]))
+            #self.get_logger().info('Control signal %d: "%s"' % (i, control_signal[i]))
 
 
 
@@ -160,6 +160,7 @@ class Controller(Node):
         
 
         return control_signal
+    
     
 
     def pos_to_rpy(self):
@@ -178,6 +179,7 @@ class Controller(Node):
 
         #Publish the control signals
         self.control_publisher.publish(msg)
+        time.sleep(0.1)
 
         #Print the control signals
         # self.get_logger().info('Publishing roll: "%s"' % msg.roll)

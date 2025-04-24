@@ -59,7 +59,7 @@ class Pathfinding(Node):
             pitch=0.0,
             yaw=0.0
             ))
-            self.get_logger().info('Sending waypoint: %s' % str(self.waypoints[self.array_index]))
+            #self.get_logger().info('Sending waypoint: %s' % str(self.waypoints[self.array_index]))
 
         
 def main(args=None):
