@@ -5,7 +5,7 @@ from interfaces.msg import RPYT
 from interfaces.msg import PoseRPY
 from geometry_msgs.msg import Pose
 from std_msgs.msg import Bool
-
+import time
 
 
 
@@ -14,7 +14,7 @@ class Simulator(Node):
     def __init__(self):
         super().__init__('Simulator')
 
-        self.start_time = self.get_clock().now().nanoseconds/1000000000
+        
 
         # Create the publisher for the control signals
         self.position_publisher = self.create_publisher(PoseRPY, 'location', 10)
@@ -50,14 +50,18 @@ class Simulator(Node):
         self.zd = 0.0
 
 
-        self.position_publisher.publish(self.start_pose)
+        
         self.ready_publisher.publish(Bool(data=True))
+        time.sleep(3)
+        self.start_time = self.get_clock().now().nanoseconds/1000000000
+        self.position_publisher.publish(self.start_pose)
 
 
     def listener_callback(self, msg):
 
+
         position = PoseRPY()
-        plot = Pose()
+        plotd = Pose()
 
         g = 9.82
         m = 0.036
@@ -77,13 +81,13 @@ class Simulator(Node):
         # Calculate the time step
         time_step = current_time - self.start_time
         self.start_time = current_time
-        # Get the current position
+        # Get the current position  
         self.x += (0.5 * xdd * time_step**2)
         self.y += (0.5 * ydd * time_step**2)
         self.z += (0.5 * zdd * time_step**2)
-        self.xd += (xdd * time_step)
-        self.yd += (ydd * time_step)
-        self.zd += (zdd * time_step)
+        self.xd += (1.0 * xdd * time_step**1)
+        self.yd += (1.0 * ydd * time_step**1)
+        self.zd += (1.0 * zdd * time_step**1)
 
         position.x = self.x
         position.y = self.y
@@ -95,19 +99,20 @@ class Simulator(Node):
         position.pitch = pitch
         position.yaw = yaw
 
-        plot.position.x = self.x
-        plot.position.y = self.y
-        plot.position.z = self.z
-        plot.orientation.x = roll
-        plot.orientation.y = pitch
-        plot.orientation.z = yaw
+        plotd.position.x = self.x
+        plotd.position.y = self.y
+        plotd.position.z = self.z
+        plotd.orientation.x = roll
+        plotd.orientation.y = pitch
+        plotd.orientation.z = yaw
 
         self.get_logger().info('Publishing x: "%s"' % position.x)
         self.get_logger().info('Publishing y: "%s"' % position.y)
         self.get_logger().info('Publishing z: "%s"' % position.z)
 
         self.position_publisher.publish(position)
-        self.plot_publisher.publish(plot)
+        self.plot_publisher.publish(plotd)
+        time.sleep(0.1)
 
         
 

@@ -45,7 +45,7 @@ class Controller(Node):
 
         self.pose_subscription = self.create_subscription(
             PoseRPY,
-            'location',
+            'vrpn/Crazyflie/pose_rpy',
             self.listener_callback_pose,
             10)
         self.pose_subscription
@@ -65,7 +65,8 @@ class Controller(Node):
         self.land_subscription
 
     def listener_callback_land(self, msg):
-        raise SystemExit('Landing now.')
+        if msg == True:
+            raise SystemExit('Landing now.')
 
     def listener_callback_ready(self, msg):
         self.ready = msg.data
@@ -94,9 +95,9 @@ class Controller(Node):
         control_signal = [0, 0, 0]
 
         #PID gains x y z x_vel y_vel z_vel
-        Kp = [ 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
-        Ki = [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        Kd = [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        Kp = [ 4.0, 4.0, 3.0, 3.0, 3.0, 3.0]
+        Ki = [ 0.5, 0.5, 0.5, 0.0, 0.0, 0.0]
+        Kd = [ 0.1, 0.1, 0.0, 0.4, 0.4, 0.4]
 
         #Calculate the time difference
         time = self.get_clock().now().nanoseconds/1000000000
@@ -109,9 +110,12 @@ class Controller(Node):
         error = [0, 0, 0]
         for i in [1,0,2]:
             error[i] = ref[i] - pose[i]
-            self.get_logger().info('Error: "%s"' % error[i])
             #Calculate the integral term
             self.integral[i] += error[i]*dt
+            if self.integral[i] > 100.0:
+                self.integral[i] = 100.0
+            if self.integral[i] < -100.0:
+                self.integral[i] = -100.0
 
         vel_error = [0, 0, 0]
         last_vel = [self.last_pose.x_vel, self.last_pose.y_vel, self.last_pose.z_vel]
@@ -123,12 +127,27 @@ class Controller(Node):
 
             vel_error[i] = vel_ref[i] - last_vel[i]
             self.vel_integral[i] += vel_error[i]*dt
+            if self.vel_integral[i] > 10.0:
+                self.vel_integral[i] = 10.0
+            if self.vel_integral[i] < -10.0:
+                self.vel_integral[i] = -10.0
 
             control_signal[i] = Kp[i+3]*vel_error[i] + Ki[i+3]*self.vel_integral[i] + Kd[i+3]*(vel_error[i] - self.last_vel_error[i])/dt
+            if control_signal[i] > 10.0 and i != 2:
+                control_signal[i] = 10.0
+            if control_signal[i] < -10.0 and i != 2:
+                control_signal[i] = -10.0
+            if control_signal[i] < 0.0 and i == 2:
+                control_signal[i] = 0.0
+            if control_signal[i] > 0.5 and i == 2:
+                control_signal[i] = 0.5
+            self.get_logger().info('Control signal %d: "%s"' % (i, control_signal[i]))
+
 
 
         self.last_vel_error = vel_error
         self.last_error = error
+        
 
         return control_signal
     

@@ -76,7 +76,7 @@ class DroneInterfaceNode(Node):
 
     def send_rpyt(self):
         if self.setpoint_control:
-            self.myFlie.commander.send_setpoint(self.roll, self.pitch, self.yaw, self.thrust)
+            self.myFlie.commander.send_setpoint(self.rpyt[0], self.rpyt[1], self.rpyt[2], self.rpyt[3])
 
     def land_drone(self, msg):
         if msg.data == False: return
@@ -104,9 +104,11 @@ class DroneInterfaceNode(Node):
         self.rpyt[0] = float(msg.roll)
         self.rpyt[1] = float(msg.pitch)
         self.rpyt[2] = float(msg.yaw)
-        self.rpyt[3] = int(msg.thrust*1000)
-
-        self.get_logger().info(f'Received setpoint: roll={self.roll}, pitch={self.pitch}, yaw={self.yaw}, thrust={self.thrust}')
+        
+        # Map the range 0 to 1.2 to a new range of 10000 to 60000
+        thrust = float(msg.thrust)
+        thrust = (thrust - 0) * (60000 - 10000) / (1.2 - 0) + 10000
+        thrust = int(thrust)
         
     def publish_log_data(self, timestamp, data, x):
         msg = CfLog()
