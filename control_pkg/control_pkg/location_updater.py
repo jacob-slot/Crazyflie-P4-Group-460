@@ -36,7 +36,7 @@ class Controller(Node):
 
         self.pose_subscription = self.create_subscription(
             PoseRPY,
-            'pose_rpy',
+            'vrpn/Crazyflie/pose_rpy',
             self.listener_callback_pose,
             10)
         self.pose_subscription
