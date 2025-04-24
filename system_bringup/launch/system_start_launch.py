@@ -25,6 +25,16 @@ def generate_launch_description():
         arguments=['-d', rviz_config_path]
     )
     
+    # ROS 2 bag recording node
+    rosbag_record_node = Node(
+        package='ros2',
+        executable='bag',
+        name='rosbag_record',
+        output='screen',
+        arguments=['record', '/vrpn_mocap/Crazyflie/pose_rpy', '/CfLog', '/control_signals']
+    )
+    
+    
     # vrpn_mocap
     mocap_node = IncludeLaunchDescription(
         AnyLaunchDescriptionSource(
@@ -65,7 +75,8 @@ def generate_launch_description():
         mocap_node,
         node_pathfinding,
         control_node,
-        drone_interface_node
+        drone_interface_node,
+        rosbag_record_node,
         
     ])
 
