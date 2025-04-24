@@ -123,6 +123,7 @@ struct Velocity {
   double vy = 0.0;
   double vz = 0.0;
 };
+
 Velocity latest_velocity_;
 
 // Update HandlePose to include velocity from the shared structure

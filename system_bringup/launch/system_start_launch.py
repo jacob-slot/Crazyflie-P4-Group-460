@@ -30,6 +30,10 @@ def generate_launch_description():
         AnyLaunchDescriptionSource(
             os.path.join(vprn_mocap_path, 'client.launch.yaml')
         ),
+        launch_arguments={
+            'server': '192.168.1.33',
+            'port': '3883'
+        }.items()
     )
     
     # pathfinding node
