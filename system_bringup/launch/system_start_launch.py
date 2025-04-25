@@ -33,7 +33,6 @@ def generate_launch_description():
     )
 
     rosbags_path = os.path.join(get_package_share_directory('system_bringup'))
-    print(rosbags_path + '/rosbags/' + current_time)
 
     rosbag_record_node = ExecuteProcess(
         cmd=[
