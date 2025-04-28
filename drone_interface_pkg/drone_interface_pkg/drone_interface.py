@@ -58,18 +58,19 @@ class DroneInterfaceNode(Node):
         logconf.start()
 
         # For GUI and logging purposes, send FALSE in the ready topic when the drone is about to take off using high-level commander
-        self.ready_publisher.publish(Bool(data=False))
+        #self.ready_publisher.publish(Bool(data=False))
 
         # Send zero setpoint to the Crazyflie to unlock thrust protection
         self.myFlie.commander.send_setpoint(0, 0, 0, 0)
-        time.sleep(0.1)
+        time.sleep(0.1) 
+        '''
         self.myFlie.commander.send_notify_setpoint_stop()
         time.sleep(0.1)
 
         myFlie.high_level_commander.takeoff(1, 2.0)
         time.sleep(3.0)
         myFlie.high_level_commander.go_to(0, 0, 1, 0, 1, relative=False)
-        time.sleep(1.2)
+        time.sleep(1.2)'''
 
         self.ready_publisher.publish(Bool(data=True))
         self.get_logger().info('Crazyflie is ready and flying.')
