@@ -38,11 +38,6 @@ class Controller(Node):
             10)
         self.ref_subscription 
 
-        # Create a QoS profile for Best Effort
-        qos_profile = QoSProfile(
-            reliability=QoSReliabilityPolicy.BEST_EFFORT
-        )
-
         self.pose_subscription = self.create_subscription(
             PoseRPY,
             'vrpn_mocap/Crazyflie/pose_rpy',
@@ -92,7 +87,7 @@ class Controller(Node):
         #self.get_logger().info('Error: "%s"' % error[0])
 
         # If within error margin, send the next reference
-        if abs(error[0]) < 0.1 and abs(error[1]) < 0.1 and abs(error[2]) < 0.1 and self.dt > 3:
+        if abs(error[0]) < 0.036 and abs(error[1]) < 0.036 and abs(error[2]) < 0.036 and self.dt > 3:
             self.position_number += 1
             msg = Int32()
 
