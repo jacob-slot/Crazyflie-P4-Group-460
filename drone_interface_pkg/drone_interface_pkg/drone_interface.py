@@ -109,7 +109,11 @@ class DroneInterfaceNode(Node):
         # Map the range 0 to 1.2 to a new range of 10000 to 60000
         thrust = float(msg.thrust)
         thrust = (thrust - 0) * (60000 - 10000) / (1.2 - 0) + 10000
-        self.rpyt[3] = thrust
+        if thrust <= 60000:
+            self.rpyt[3] = thrust
+        else:
+            self.rpyt[3] = 60000.0
+            self.get_logger().warn('Thrust value is too high. Setting thrust to 60000.')
         
     def publish_log_data(self, timestamp, data, x):
         msg = CfLog()
