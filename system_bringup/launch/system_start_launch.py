@@ -1,4 +1,5 @@
 import os
+import time
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import IncludeLaunchDescription
@@ -7,6 +8,11 @@ from launch.launch_description_sources import AnyLaunchDescriptionSource
 from launch_ros.actions import Node
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
+from launch.actions import ExecuteProcess
+
+
+current_time = time.strftime("%Y-%m-%d-%H-%M-%S")
+
 
 def generate_launch_description():
 
@@ -25,7 +31,19 @@ def generate_launch_description():
         output='screen',
         arguments=['-d', rviz_config_path]
     )
-    
+
+    rosbags_path = os.path.join(get_package_share_directory('system_bringup'))
+
+    rosbag_record_node = ExecuteProcess(
+        cmd=[
+            'ros2', 'bag', 'record',
+            '-o', rosbags_path + '/rosbags/' + current_time,
+            '/vrpn_mocap/Crazyflie/pose_rpy',
+            '/CfLog',
+            '/control_signals'
+        ],
+        output='screen'
+    )
     
     
     # vrpn_mocap
@@ -65,6 +83,7 @@ def generate_launch_description():
 
     return LaunchDescription([
         #node_rviz2,
+        rosbag_record_node,
         mocap_node,
         node_pathfinding,
         control_node,
