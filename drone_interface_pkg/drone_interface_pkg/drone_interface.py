@@ -57,6 +57,9 @@ class DroneInterfaceNode(Node):
         logconf.data_received_cb.add_callback(self.publish_log_data)
         logconf.start()
 
+        # For GUI and logging purposes, send FALSE in the ready topic when the drone is about to take off using high-level commander
+        self.ready_publisher.publish(Bool(data=False))
+
         # Send zero setpoint to the Crazyflie to unlock thrust protection
         self.myFlie.commander.send_setpoint(0, 0, 0, 0)
         time.sleep(0.1)
@@ -76,6 +79,7 @@ class DroneInterfaceNode(Node):
 
     def send_rpyt(self):
         if self.setpoint_control:
+            self.get_logger().info('Sending RPYT setpoint: roll: {}, pitch: {}, yaw: {}, thrust: {}'.format(self.rpyt[0], self.rpyt[1], self.rpyt[2], self.rpyt[3]))
             self.myFlie.commander.send_setpoint(self.rpyt[0], self.rpyt[1], self.rpyt[2], int(self.rpyt[3]))
 
     def land_drone(self, msg):
@@ -89,6 +93,7 @@ class DroneInterfaceNode(Node):
         time.sleep(4.0)
 
         # end the link
+        self.create_publisher(Bool, 'land', 10).publish(Bool(data=False))
         self.myFlie.high_level_commander.stop()
         self.myFlie.platform.send_arming_request(False)
         time.sleep(1.0)

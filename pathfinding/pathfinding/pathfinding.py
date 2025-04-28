@@ -4,7 +4,7 @@ from ament_index_python.packages import get_package_share_directory
 from rclpy.node import Node
 
 from std_msgs.msg import Int32
-from interfaces.msg import PoseRPY
+from interfaces.msg import PoseRPY # type: ignore
 from std_msgs.msg import Bool
 
 pathfinding_path = os.path.join(get_package_share_directory('pathfinding'), 'waypoints.txt')
@@ -48,7 +48,7 @@ class Pathfinding(Node):
 
         if len(self.waypoints) == self.array_index:
             #If all waypoints have been achieved, send 0,0,z to return home
-            self.publisher.publish(Bool(data=True))
+            self.land_publisher.publish(Bool(data=True))
             raise SystemExit('All waypoints have been achieved, landing now.')
         else:
             self.publisher.publish(PoseRPY(
