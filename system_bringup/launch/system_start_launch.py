@@ -40,7 +40,8 @@ def generate_launch_description():
             '-o', rosbags_path + '/rosbags/' + current_time,
             '/vrpn_mocap/Crazyflie/pose_rpy',
             '/CfLog',
-            '/control_signals'
+            '/control_signals',
+            '/ready'
         ],
         output='screen'
     )

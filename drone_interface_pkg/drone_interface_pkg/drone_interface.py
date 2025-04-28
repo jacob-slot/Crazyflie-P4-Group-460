@@ -75,7 +75,7 @@ class DroneInterfaceNode(Node):
         self.ready_publisher.publish(Bool(data=True))
         self.get_logger().info('Crazyflie is ready and flying.')
 
-        self.create_timer(0.1, self.send_rpyt)
+        self.create_timer(0.01, self.send_rpyt)
         
 
     def send_rpyt(self):
@@ -114,7 +114,7 @@ class DroneInterfaceNode(Node):
         
         # Map the range 0 to 1.2 to a new range of 10000 to 60000
         thrust = float(msg.thrust)
-        thrust = (thrust - 0) * (60000 - 10000) / (1.2 - 0) + 10000
+        thrust = thrust*10000.0 + 47000.0
         if thrust <= 60000:
             self.rpyt[3] = thrust
         else:

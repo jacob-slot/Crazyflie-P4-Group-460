@@ -101,9 +101,13 @@ class Controller(Node):
         control_signal = [0, 0, 0]
 
         #PID gains x y z x_vel y_vel z_vel
-        Kp = [ 4.0, 4.0, 3.0, 3.0, 3.0, 3.0]
-        Ki = [ 0.5, 0.5, 0.5, 0.0, 0.0, 0.0]
-        Kd = [ 0.1, 0.1, 0.0, 0.4, 0.4, 0.4]
+        Kp = [ 0.0, 4.0, 2.24, 2.0, 0.0, 3.6]
+        Ki = [ 0.0, 0.0, 3.0, 0.0, 0.0, 0.0]
+        Kd = [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.54]
+
+        # Kp = [ 0.0, 0.0, 2.24, 0.0, 0.0, 0.45]
+        # Ki = [ 0.0, 0.0, 2.8, 0.0, 0.0, 0.0]
+        # Kd = [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
         #Calculate the time difference
         time = self.get_clock().now().nanoseconds/1000000000
@@ -119,18 +123,19 @@ class Controller(Node):
             self.get_logger().info('Error %d: "%s"' % (i, error[i]))
             #Calculate the integral term
             self.integral[i] += error[i]*dt
-            if self.integral[i] > 100.0:
-                self.integral[i] = 100.0
-            if self.integral[i] < -100.0:
-                self.integral[i] = -100.0
+            if self.integral[i] > 0.5:
+                self.integral[i] = 0.5
+            if self.integral[i] < -0.5:
+                self.integral[i] = -0.5
 
         vel_error = [0, 0, 0]
         last_vel = [self.last_pose.x_vel, self.last_pose.y_vel, self.last_pose.z_vel]
+        #vel_ref = [0.0, 0.0, 0.2]
 
         #Calculate the control signals for roll, pitch and thrust
         for i in [1,0,2]:
             vel_ref[i] = Kp[i]*error[i] + Ki[i]*self.integral[i] + Kd[i]*(error[i] - self.last_error[i])/dt
-
+            
 
             vel_error[i] = vel_ref[i] - last_vel[i]
             self.vel_integral[i] += vel_error[i]*dt
@@ -138,16 +143,19 @@ class Controller(Node):
                 self.vel_integral[i] = 10.0
             if self.vel_integral[i] < -10.0:
                 self.vel_integral[i] = -10.0
-
+            
             control_signal[i] = Kp[i+3]*vel_error[i] + Ki[i+3]*self.vel_integral[i] + Kd[i+3]*(vel_error[i] - self.last_vel_error[i])/dt
-            if control_signal[i] > 5.0 and i != 2:
-                control_signal[i] = 5.0
-            if control_signal[i] < -5.0 and i != 2:
-                control_signal[i] = -5.0
-            if control_signal[i] < 0.0 and i == 2:
-                control_signal[i] = 0.0
-            # if control_signal[i] > 10.0 and i == 2:
-            #     control_signal[i] = 10.0
+            if i != 2:
+                control_signal[i] = -1*control_signal[i]
+
+            if control_signal[i] > 8.0 and i != 2:
+                control_signal[i] = 8.0
+            if control_signal[i] < -8.0 and i != 2:
+                control_signal[i] = -8.0
+            if control_signal[i] < -1.2 and i == 2:
+                control_signal[i] = -1.2
+            if control_signal[i] > 1.2 and i == 2:
+                control_signal[i] = 1.2
             #self.get_logger().info('Control signal %d: "%s"' % (i, control_signal[i]))
 
 
@@ -176,7 +184,7 @@ class Controller(Node):
 
         #Publish the control signals
         self.control_publisher.publish(msg)
-        time.sleep(0.1)
+        time.sleep(0.01)
 
         #Print the control signals
         # self.get_logger().info('Publishing roll: "%s"' % msg.roll)
