@@ -45,11 +45,7 @@ class Controller(Node):
             self.listener_callback_ref,
             qos_profile)
         self.ref_subscription 
-
-        # Create a QoS profile for Best Effort
-        qos_profile = QoSProfile(
-            reliability=QoSReliabilityPolicy.BEST_EFFORT
-        )
+        
 
         self.pose_subscription = self.create_subscription(
             PoseRPY,
@@ -120,6 +116,7 @@ class Controller(Node):
         error = [0, 0, 0]
         for i in [1,0,2]:
             error[i] = ref[i] - pose[i]
+            self.get_logger().info('Error %d: "%s"' % (i, error[i]))
             #Calculate the integral term
             self.integral[i] += error[i]*dt
             if self.integral[i] > 100.0:
