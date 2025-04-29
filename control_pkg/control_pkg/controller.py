@@ -3,8 +3,8 @@ import numpy as np
 import rclpy
 from rclpy.node import Node
 
-from interfaces.msg import RPYT
-from interfaces.msg import PoseRPY
+from interfaces.msg import RPYT # type: ignore
+from interfaces.msg import PoseRPY # type: ignore
 from std_msgs.msg import Bool
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy
 import time
@@ -12,9 +12,6 @@ import time
 
 
 class Controller(Node):
-
-    
-
     def __init__(self):
         super().__init__('Controller')
 
@@ -101,7 +98,7 @@ class Controller(Node):
         control_signal = [0, 0, 0]
 
         #PID gains x y z x_vel y_vel z_vel
-        Kp = [ 0.0, 4.0, 2.24, 2.0, 0.0, 3.6]
+        Kp = [ 4.0, 4.0, 2.24, 2.0, 2.0, 3.6]
         Ki = [ 0.0, 0.0, 3.0, 0.0, 0.0, 0.0]
         Kd = [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.54]
 
@@ -145,7 +142,7 @@ class Controller(Node):
                 self.vel_integral[i] = -10.0
             
             control_signal[i] = Kp[i+3]*vel_error[i] + Ki[i+3]*self.vel_integral[i] + Kd[i+3]*(vel_error[i] - self.last_vel_error[i])/dt
-            if i != 2:
+            if i == 1:
                 control_signal[i] = -1*control_signal[i]
 
             if control_signal[i] > 8.0 and i != 2:
@@ -178,8 +175,8 @@ class Controller(Node):
 
         #Create the control signal message
         msg = RPYT()
-        msg.roll = control_signal[0]
-        msg.pitch = control_signal[1]
+        msg.roll = control_signal[1]
+        msg.pitch = control_signal[0]
         msg.thrust = control_signal[2]
 
         #Publish the control signals
