@@ -33,6 +33,8 @@
 #include <Eigen/Geometry>
 #include <Eigen/StdVector>
 
+PI = 3.14159265358979323846;
+
 
 namespace vrpn_mocap
 {
@@ -166,14 +168,21 @@ void VRPN_CALLBACK Tracker::HandlePose(void * data, const vrpn_TRACKERCB tracker
   pose_rpy_msg.y_vel = tracker->latest_velocity_.vy;
   pose_rpy_msg.z_vel = tracker->latest_velocity_.vz;
 
-  // Convert quaternion to roll, pitch, yaw
+  // Convert quaternion to Eigen quaternion (assuming tracker_pose.quat = [x, y, z, w])
   Eigen::Quaterniond quat(
-    tracker_pose.quat[3], tracker_pose.quat[0], tracker_pose.quat[1], tracker_pose.quat[2]);
+    tracker_pose.quat[3], // w
+    tracker_pose.quat[0], // x
+    tracker_pose.quat[1], // y
+    tracker_pose.quat[2]  // z
+  );
+
+  // Convert quaternion to roll (X), pitch (Y), yaw (Z)
   Eigen::Vector3d euler = quat.toRotationMatrix().eulerAngles(0, 1, 2);
 
-  pose_rpy_msg.roll = (euler[0]*3.14)/180;
-  pose_rpy_msg.pitch = (euler[1]*3.14)/180;
-  pose_rpy_msg.yaw = (euler[2]*3.14)/180;
+  // Convert radians to degrees
+  pose_rpy_msg.roll  = euler[0] * (180.0 / PI);
+  pose_rpy_msg.pitch = euler[1] * (180.0 / PI);
+  pose_rpy_msg.yaw   = euler[2] * (180.0 / PI);
 
   pose_rpy_pub->publish(pose_rpy_msg);
 }
