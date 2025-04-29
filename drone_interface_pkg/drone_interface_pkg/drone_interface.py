@@ -167,13 +167,13 @@ class DroneInterfaceNode(Node):
         # Publish the log data
         self.log_publisher.publish(msg)
 
-
-        msg2 = PoseRPY()
-        msg2.x = float(data['stateEstimate.x'])
-        msg2.y = float(data['stateEstimate.y'])
-        msg2.z = float(data['stateEstimate.z'])
-        
-        self.pose_publisher.publish(msg2)
+        if not vicon:
+            msg2 = PoseRPY()
+            msg2.x = float(data['stateEstimate.x'])
+            msg2.y = float(data['stateEstimate.y'])
+            msg2.z = float(data['stateEstimate.z'])
+            
+            self.pose_publisher.publish(msg2)
 
 
 class MocapWrapper(Thread):

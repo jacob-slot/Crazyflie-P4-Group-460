@@ -53,7 +53,7 @@ def generate_launch_description():
             os.path.join(vprn_mocap_path, 'client.launch.yaml')
         ),
         launch_arguments={
-            'server': '192.168.1.33',
+            'server': '192.168.0.100',
             'port': '3883'
         }.items()
     )
