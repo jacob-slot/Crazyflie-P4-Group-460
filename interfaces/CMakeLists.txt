@@ -34,6 +34,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/RPYT.msg"
   "msg/PoseRPY.msg"
   "msg/CfLog.msg"
+  "msg/PidTune.msg"
 )
 
 ament_package()

@@ -5,6 +5,7 @@ from rclpy.node import Node
 
 from interfaces.msg import RPYT # type: ignore
 from interfaces.msg import PoseRPY # type: ignore
+from interfaces.msg import PidTune # type: ignore
 from std_msgs.msg import Bool
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy
 import time
@@ -27,6 +28,11 @@ class Controller(Node):
         self.last_vel_error = [0, 0, 0]
         self.first_ref = False
         self.ready = False
+
+        self.Kp = [ 2.0, 2.0, 1.8, 3.0, 3.0, 2.0]
+        self.Ki = [ 0.0, 0.0, 3.0, 0.0, 0.0, 0.0]
+        self.Kd = [ 1.0, 1.0, 1.0, 0.0, 0.0, 0.0]
+
 
         # Initialize the integral term for the PID controller
         self.start_time = 0
@@ -67,6 +73,13 @@ class Controller(Node):
             10)
         self.land_subscription
 
+        self.pid_subscription = self.create_subscription(
+            PidTune,
+            'pid',
+            self.listener_callback_pid,
+            10)
+
+
     def listener_callback_land(self, msg):
         """ Recieve the landing signal and land the drone """
         if msg == True:
@@ -89,6 +102,12 @@ class Controller(Node):
         if self.first_ref == True and self.ready == True:
             self.pos_to_rpy()
 
+    def listener_callback_pid(self, msg):
+        """ Save the PID gains """
+        self.Kp = [msg.xy_outer_p, msg.xy_outer_p, msg.z_outer_p, msg.xy_inner_p, msg.xy_inner_p, msg.z_inner_p]
+        self.Ki = [msg.xy_outer_i, msg.xy_outer_i, msg.z_outer_i, msg.xy_inner_i, msg.xy_inner_i, msg.z_inner_i]
+        self.Kd = [msg.xy_outer_d, msg.xy_outer_d, msg.z_outer_d, msg.xy_inner_d, msg.xy_inner_d, msg.z_inner_d]
+
 
     def PID(self):
         """
@@ -96,9 +115,9 @@ class Controller(Node):
         """
 
         #PID gains x y z x_vel y_vel z_vel
-        Kp = [ 4.0, 4.0, 2.24, 2.0, 2.0, 3.6]
-        Ki = [ 0.0, 0.0, 3.0, 0.0, 0.0, 0.0]
-        Kd = [ 1.0, 1.0, 0.0, 0.0, 0.0, 0.54]
+        Kp = self.Kp
+        Ki = self.Ki
+        Kd = self.Kd
 
         #Calculate the time difference
         time = self.get_clock().now().nanoseconds/1000000000
@@ -131,7 +150,8 @@ class Controller(Node):
 
             #Calculate the reference velocity
             vel_ref[i] = Kp[i]*error[i] + Ki[i]*self.integral[i] + Kd[i]*(error[i] - self.last_error[i])/dt
-            
+            vel_ref = [0.0,0.0,0.2]
+
             #Calculate the velocity error
             vel_error[i] = vel_ref[i] - last_vel[i]
 
@@ -180,8 +200,8 @@ class Controller(Node):
 
         #Create the control signal message
         msg = RPYT()
-        msg.roll = control_signal[1]
-        msg.pitch = control_signal[0]
+        msg.roll = 0.0#control_signal[1]
+        msg.pitch = 0.0#control_signal[0]
         msg.thrust = control_signal[2]
 
         #Publish the control signals
