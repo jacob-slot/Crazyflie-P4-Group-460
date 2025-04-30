@@ -33,7 +33,6 @@
 #include <Eigen/Geometry>
 #include <Eigen/StdVector>
 
-PI = 3.14159265358979323846;
 
 
 namespace vrpn_mocap
@@ -180,9 +179,9 @@ void VRPN_CALLBACK Tracker::HandlePose(void * data, const vrpn_TRACKERCB tracker
   Eigen::Vector3d euler = quat.toRotationMatrix().eulerAngles(0, 1, 2);
 
   // Convert radians to degrees
-  pose_rpy_msg.roll  = euler[0] * (180.0 / PI);
-  pose_rpy_msg.pitch = euler[1] * (180.0 / PI);
-  pose_rpy_msg.yaw   = euler[2] * (180.0 / PI);
+  pose_rpy_msg.roll  = euler[0] * (180.0 / 3.14);
+  pose_rpy_msg.pitch = euler[1] * (180.0 / 3.14);
+  pose_rpy_msg.yaw   = euler[2] * (180.0 / 3.14);
 
   pose_rpy_pub->publish(pose_rpy_msg);
 }

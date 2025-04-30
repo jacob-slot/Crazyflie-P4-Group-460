@@ -15,11 +15,12 @@ class Controller(Node):
     def __init__(self):
         super().__init__('Controller')
 
+        # Set up the QoS profile for the subscriptions
         qos_profile = QoSProfile(depth=10)  # You can adjust the depth if needed
         qos_profile.reliability = QoSReliabilityPolicy.RELIABLE
 
 
-        # Initialize the last reference, pose and error variables
+        # Initialize the last reference, pose, error variables and ready signals
         self.last_ref = PoseRPY()
         self.last_pose = PoseRPY()
         self.last_error = [0, 0, 0]
@@ -43,7 +44,6 @@ class Controller(Node):
             qos_profile)
         self.ref_subscription 
         
-
         self.pose_subscription = self.create_subscription(
             PoseRPY,
             'vrpn_mocap/Crazyflie/pose_rpy',
@@ -52,7 +52,7 @@ class Controller(Node):
         )
         self.pose_subscription
 
-
+        # Create the subscription for the ready signal and landing signal
         self.ready_subscription = self.create_subscription(
             Bool,
             'ready',
@@ -68,10 +68,12 @@ class Controller(Node):
         self.land_subscription
 
     def listener_callback_land(self, msg):
+        """ Recieve the landing signal and land the drone """
         if msg == True:
             raise SystemExit('Landing now.')
 
     def listener_callback_ready(self, msg):
+        """ Recieve the ready signal and start the timer"""
         self.ready = msg.data
         self.start_time = self.get_clock().now().nanoseconds/1000000000
 
@@ -93,31 +95,33 @@ class Controller(Node):
         PID controller
         """
 
-        #Initialize the control signal and the PID gains
-        vel_ref = [0, 0 ,0]
-        control_signal = [0, 0, 0]
-
         #PID gains x y z x_vel y_vel z_vel
         Kp = [ 4.0, 4.0, 2.24, 2.0, 2.0, 3.6]
         Ki = [ 0.0, 0.0, 3.0, 0.0, 0.0, 0.0]
         Kd = [ 1.0, 1.0, 0.0, 0.0, 0.0, 0.54]
-
-        # Kp = [ 0.0, 0.0, 2.24, 0.0, 0.0, 0.45]
-        # Ki = [ 0.0, 0.0, 2.8, 0.0, 0.0, 0.0]
-        # Kd = [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
         #Calculate the time difference
         time = self.get_clock().now().nanoseconds/1000000000
         dt = max(time - self.start_time, 1e-6)
         self.start_time = time
 
-        #Calculate the error
+        #Initialize the control signals and velocity reference
+        vel_ref = [0, 0 ,0]
+        control_signal = [0, 0, 0]
+
+        #initialize the error and velocity error
+        error = [0, 0, 0]
+        vel_error = [0, 0, 0]
+
+        #Get the last reference, pose and velocity
         ref = [self.last_ref.x, self.last_ref.y, self.last_ref.z]
         pose = [self.last_pose.x, self.last_pose.y, self.last_pose.z]
-        error = [0, 0, 0]
+        last_vel = [self.last_pose.x_vel, self.last_pose.y_vel, self.last_pose.z_vel]
+
         for i in [1,0,2]:
+            #Calculate the error
             error[i] = ref[i] - pose[i]
-            self.get_logger().info('Error %d: "%s"' % (i, error[i]))
+
             #Calculate the integral term
             self.integral[i] += error[i]*dt
             if self.integral[i] > 0.5:
@@ -125,36 +129,37 @@ class Controller(Node):
             if self.integral[i] < -0.5:
                 self.integral[i] = -0.5
 
-        vel_error = [0, 0, 0]
-        last_vel = [self.last_pose.x_vel, self.last_pose.y_vel, self.last_pose.z_vel]
-        #vel_ref = [0.0, 0.0, 0.2]
-
-        #Calculate the control signals for roll, pitch and thrust
-        for i in [1,0,2]:
+            #Calculate the reference velocity
             vel_ref[i] = Kp[i]*error[i] + Ki[i]*self.integral[i] + Kd[i]*(error[i] - self.last_error[i])/dt
             
-
+            #Calculate the velocity error
             vel_error[i] = vel_ref[i] - last_vel[i]
+
+            #Calculate the velocity integral term
             self.vel_integral[i] += vel_error[i]*dt
             if self.vel_integral[i] > 10.0:
                 self.vel_integral[i] = 10.0
             if self.vel_integral[i] < -10.0:
                 self.vel_integral[i] = -10.0
-            
+
+            #Calculate the control signal
             control_signal[i] = Kp[i+3]*vel_error[i] + Ki[i+3]*self.vel_integral[i] + Kd[i+3]*(vel_error[i] - self.last_vel_error[i])/dt
+
+            #Invert the control signal for roll
             if i == 1:
                 control_signal[i] = -1*control_signal[i]
 
+            #Limit the pitch and roll signals
             if control_signal[i] > 8.0 and i != 2:
                 control_signal[i] = 8.0
             if control_signal[i] < -8.0 and i != 2:
                 control_signal[i] = -8.0
+
+            #Limit the thrust signal
             if control_signal[i] < -1.2 and i == 2:
                 control_signal[i] = -1.2
             if control_signal[i] > 1.2 and i == 2:
                 control_signal[i] = 1.2
-            #self.get_logger().info('Control signal %d: "%s"' % (i, control_signal[i]))
-
 
 
         self.last_vel_error = vel_error
@@ -167,7 +172,7 @@ class Controller(Node):
 
     def pos_to_rpy(self):
         """
-        Converts the position to roll, pitch and yaw, applies the PID controller and publishes the control signals
+        Finds control signals through PID controller and publishes them
         """
 
         #Calculate the control signals
@@ -183,17 +188,8 @@ class Controller(Node):
         self.control_publisher.publish(msg)
         time.sleep(0.01)
 
-        #Print the control signals
-        # self.get_logger().info('Publishing roll: "%s"' % msg.roll)
-        # self.get_logger().info('Publishing pitch: "%s"' % msg.pitch)
-        # self.get_logger().info('Publishing yaw: "%s"' % msg.yaw)
-        # self.get_logger().info('Publishing thrust: "%s"' % msg.thrust)
-        
-
 
         
-        
-
 
 def main(args=None):
     rclpy.init(args=args)
