@@ -96,9 +96,9 @@ class Controller(Node):
         """
 
         #PID gains x y z x_vel y_vel z_vel
-        Kp = [ 4.0, 4.0, 2.24, 2.0, 2.0, 3.6]
-        Ki = [ 0.0, 0.0, 3.0, 0.0, 0.0, 0.0]
-        Kd = [ 1.0, 1.0, 0.0, 0.0, 0.0, 0.54]
+        Kp = [ 4.0, 4.0, 0.8, 2.0, 2.0, 1.2]
+        Ki = [ 0.0, 0.0, 1.2, 0.0, 0.0, 0.0]
+        Kd = [ 1.0, 1.0, 0.0, 0.0, 0.0, 0.3]
 
         #Calculate the time difference
         time = self.get_clock().now().nanoseconds/1000000000
