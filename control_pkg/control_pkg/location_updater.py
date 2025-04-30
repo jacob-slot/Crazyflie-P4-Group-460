@@ -21,6 +21,7 @@ class Controller(Node):
         qos_profile.reliability = QoSReliabilityPolicy.RELIABLE
 
         # Initialize the last reference, pose and error variables
+        self.speed = 0.0
         self.last_ref = [0, 0, 0]
         self.last_pose = [0, 0, 0]
         self.position_number = 0
@@ -65,6 +66,8 @@ class Controller(Node):
         self.last_pose[0] = msg.x
         self.last_pose[1] = msg.y
         self.last_pose[2] = msg.z
+        self.speed = abs(msg.x_vel) + abs(msg.y_vel) + abs(msg.z_vel)
+
 
         #self.get_logger().info('Pose: "%s"' % self.last_pose[0])
         if self.first_ref == True:
@@ -87,7 +90,7 @@ class Controller(Node):
         #self.get_logger().info('Error: "%s"' % error[0])
 
         # If within error margin, send the next reference
-        if abs(error[0]) < 0.036 and abs(error[1]) < 0.036 and abs(error[2]) < 0.036 and self.dt > 3:
+        if abs(error[0]) < 0.036 and abs(error[1]) < 0.036 and abs(error[2]) < 0.036 and self.dt > 3 and self.speed < 0.1:
             self.position_number += 1
             msg = Int32()
 

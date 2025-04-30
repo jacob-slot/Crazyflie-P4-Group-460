@@ -14,6 +14,7 @@ from cflib.utils.reset_estimator import reset_estimator
 # Import custom message types
 from interfaces.msg import RPYT # type: ignore
 from interfaces.msg import CfLog # type: ignore
+from interfaces.msg import PoseRPY # type: ignore
 from std_msgs.msg import Bool
 
 vicon = True
@@ -45,6 +46,9 @@ class DroneInterfaceNode(Node):
         self.log_publisher = self.create_publisher(CfLog, 'CfLog', 10)
         self.ready_publisher = self.create_publisher(Bool, 'ready', 10)
 
+        if not vicon:
+            self.pose_publisher = self.create_publisher(PoseRPY, 'vrpn_mocap/Crazyflie/pose_rpy', 10)
+
         # Set up logging
         logconf = LogConfig(name='Motors', period_in_ms=20)
         logconf.add_variable('pm.vbatMV', 'uint16_t')
@@ -52,17 +56,25 @@ class DroneInterfaceNode(Node):
         logconf.add_variable('controller.roll', 'float')
         logconf.add_variable('controller.pitch', 'float')
         logconf.add_variable('controller.yaw', 'float')
+        #logconf.add_variable('stateEstimate.x', 'float')
+        #logconf.add_variable('stateEstimate.y', 'float')
+        #logconf.add_variable('stateEstimate.z', 'float')
+        #logconf.add_variable('stateEstimate.qx', 'float')
+        #logconf.add_variable('stateEstimate.qy', 'float')
+        #logconf.add_variable('stateEstimate.qz', 'float')
+        #logconf.add_variable('stateEstimate.qw', 'float')
 
         myFlie.log.add_config(logconf)
         logconf.data_received_cb.add_callback(self.publish_log_data)
         logconf.start()
 
-        # For GUI and logging purposes, send FALSE in the ready topic when the drone is about to take off using high-level commander
+        # For GUI and logging purposes, send FALSE in tLOG_INT16he ready topic when the drone is about to take off using high-level commander
         #self.ready_publisher.publish(Bool(data=False))
 
         # Send zero setpoint to the Crazyflie to unlock thrust protection
         self.myFlie.commander.send_setpoint(0, 0, 0, 0)
         time.sleep(0.1) 
+        
         '''
         self.myFlie.commander.send_notify_setpoint_stop()
         time.sleep(0.1)
@@ -70,8 +82,9 @@ class DroneInterfaceNode(Node):
         myFlie.high_level_commander.takeoff(1, 2.0)
         time.sleep(3.0)
         myFlie.high_level_commander.go_to(0, 0, 1, 0, 1, relative=False)
-        time.sleep(1.2)'''
-
+        time.sleep(1.2)
+        '''
+        
         self.ready_publisher.publish(Bool(data=True))
         self.get_logger().info('Crazyflie is ready and flying.')
 
@@ -123,7 +136,19 @@ class DroneInterfaceNode(Node):
         
     def publish_log_data(self, timestamp, data, x):
         msg = CfLog()
-
+        
+        '''
+        # Get position data from Crazyflie
+        msg.x = float(data['stateEstimate.x'])
+        msg.y = float(data['stateEstimate.y'])
+        msg.z = float(data['stateEstimate.z'])
+        msg.quat_x = float(data['stateEstimate.qx'])
+        msg.quat_y = float(data['stateEstimate.qy'])
+        msg.quat_z = float(data['stateEstimate.qz'])
+        msg.quat_w = float(data['stateEstimate.qw'])
+        '''
+        
+        '''
         # Get position data from vicon
         msg.x = float(latest_pose[0])
         msg.y = float(latest_pose[1])
@@ -131,7 +156,7 @@ class DroneInterfaceNode(Node):
         msg.quat_x = float(latest_pose[3])
         msg.quat_y = float(latest_pose[4])
         msg.quat_z = float(latest_pose[5])
-        msg.quat_w = float(latest_pose[6])
+        msg.quat_w = float(latest_pose[6])'''
 
         # Get reference RPYT and battery voltage from Crazyflie
         msg.roll_signal = float(data['controller.roll'])
@@ -145,6 +170,14 @@ class DroneInterfaceNode(Node):
 
         # Publish the log data
         self.log_publisher.publish(msg)
+
+        if not vicon:
+            msg2 = PoseRPY()
+            msg2.x = float(data['stateEstimate.x'])
+            msg2.y = float(data['stateEstimate.y'])
+            msg2.z = float(data['stateEstimate.z'])
+            
+            self.pose_publisher.publish(msg2)
 
 
 class MocapWrapper(Thread):

@@ -41,7 +41,10 @@ def generate_launch_description():
             '/vrpn_mocap/Crazyflie/pose_rpy',
             '/CfLog',
             '/control_signals',
-            '/ready'
+            '/ready',
+            '/ref_pose',''
+            '/land',
+            '/next_ref',
         ],
         output='screen'
     )
