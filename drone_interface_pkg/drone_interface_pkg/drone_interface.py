@@ -83,12 +83,12 @@ class DroneInterfaceNode(Node):
         
         self.crazyflie.commander.send_notify_setpoint_stop()
         time.sleep(0.1)
-        '''
+        
         crazyflie.high_level_commander.takeoff(1, 2.0)
         time.sleep(3.0)
         crazyflie.high_level_commander.go_to(0, 0, 1, 0, 1, relative=False)
         time.sleep(1.2)
-        '''
+        
         
         self.ready_publisher.publish(Bool(data=True))
         self.get_logger().info('Crazyflie is ready and flying.')

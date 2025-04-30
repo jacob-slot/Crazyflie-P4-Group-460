@@ -96,9 +96,13 @@ class Controller(Node):
         """
 
         #PID gains x y z x_vel y_vel z_vel
-        Kp = [ 4.0, 4.0, 0.8, 2.0, 2.0, 1.2]
-        Ki = [ 0.0, 0.0, 1.2, 0.0, 0.0, 0.0]
-        Kd = [ 1.0, 1.0, 0.0, 0.0, 0.0, 0.3]
+        # Kp = [ 4.0, 4.0, 0.8, 2.0, 2.0, 1.2]
+        # Ki = [ 0.0, 0.0, 1.2, 0.0, 0.0, 0.0]
+        # Kd = [ 1.0, 1.0, 0.0, 0.0, 0.0, 0.3]
+
+        Kp = [ 2.0, 2.0, 2.0, 25.0, 25.0, 25.0]
+        Ki = [ 0.0, 0.0, 0.5, 1.0, 1.0, 15.0]
+        Kd = [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
         #Calculate the time difference
         time = self.get_clock().now().nanoseconds/1000000000
@@ -131,6 +135,9 @@ class Controller(Node):
 
             #Calculate the reference velocity
             vel_ref[i] = Kp[i]*error[i] + Ki[i]*self.integral[i] + Kd[i]*(error[i] - self.last_error[i])/dt
+
+            if vel_ref[i] > 1.0:
+                vel_ref[i] = 0.5
             
             #Calculate the velocity error
             vel_error[i] = vel_ref[i] - last_vel[i]
