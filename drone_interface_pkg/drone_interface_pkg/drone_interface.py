@@ -17,20 +17,25 @@ from interfaces.msg import CfLog # type: ignore
 from interfaces.msg import PoseRPY # type: ignore
 from std_msgs.msg import Bool
 
+# Use vicon for mocap data or not (flowdeck)
 vicon = True
 
-# URI to the Crazyflie to connect to
+# Constants
+HOST_NAME = '192.168.1.33'
+MOCAP_TYPE = 'vicon'
+RIGID_BODY = 'Crazyflie'
+ORIENTATION_STANDARD_DEVIATION = 8.0e-3
+RADIO_URI = 'radio://0/80/2M/E7E7E7E7'
+MIN_THRUST = 10000.0
+BASE_THRUST = 47000.0
+MAX_THRUST = 60000.0
+CONTROL_LOOP_PERIOD = 0.01
+
 uri = uri_helper.uri_from_env(default='radio://0/80/2M/E7E7E7E7E7')
-host_name = '192.168.1.33'
-mocap_system_type = 'vicon'
-rigid_body_name = 'Crazyflie'
-# When using full pose, the estimator can be sensitive to noise in the orientation data when yaw is close to +/- 90
-# degrees. If this is a problem, increase orientation_std_dev a bit. The default value in the firmware is 4.5e-3.
-orientation_std_dev = 8.0e-3
 
 class DroneInterfaceNode(Node):
-    def __init__(self, myFlie):
-        self.myFlie = myFlie
+    def __init__(self, crazyflie):
+        self.crazyflie = crazyflie
         self.rpyt = np.array([0.0, 0.0, 0.0, 0.0], dtype=np.float32)
         self.prev_thrust = 0
         self.setpoint_control = False
@@ -64,7 +69,7 @@ class DroneInterfaceNode(Node):
         #logconf.add_variable('stateEstimate.qz', 'float')
         #logconf.add_variable('stateEstimate.qw', 'float')
 
-        myFlie.log.add_config(logconf)
+        crazyflie.log.add_config(logconf)
         logconf.data_received_cb.add_callback(self.publish_log_data)
         logconf.start()
 
@@ -72,46 +77,46 @@ class DroneInterfaceNode(Node):
         #self.ready_publisher.publish(Bool(data=False))
 
         # Send zero setpoint to the Crazyflie to unlock thrust protection
-        self.myFlie.commander.send_setpoint(0, 0, 0, 0)
+        self.crazyflie.commander.send_setpoint(0, 0, 0, 0)
         time.sleep(0.1) 
         
         '''
-        self.myFlie.commander.send_notify_setpoint_stop()
+        self.crazyflie.commander.send_notify_setpoint_stop()
         time.sleep(0.1)
 
-        myFlie.high_level_commander.takeoff(1, 2.0)
+        crazyflie.high_level_commander.takeoff(1, 2.0)
         time.sleep(3.0)
-        myFlie.high_level_commander.go_to(0, 0, 1, 0, 1, relative=False)
+        crazyflie.high_level_commander.go_to(0, 0, 1, 0, 1, relative=False)
         time.sleep(1.2)
         '''
         
         self.ready_publisher.publish(Bool(data=True))
         self.get_logger().info('Crazyflie is ready and flying.')
 
-        self.create_timer(0.01, self.send_rpyt)
+        self.create_timer(CONTROL_LOOP_PERIOD, self.send_rpyt)
         
 
     def send_rpyt(self):
         if self.setpoint_control:
             self.get_logger().info('Sending RPYT setpoint: roll: {}, pitch: {}, yaw: {}, thrust: {}'.format(self.rpyt[0], self.rpyt[1], self.rpyt[2], self.rpyt[3]))
-            self.myFlie.commander.send_setpoint(self.rpyt[0], self.rpyt[1], self.rpyt[2], int(self.rpyt[3]))
+            self.crazyflie.commander.send_setpoint(self.rpyt[0], self.rpyt[1], self.rpyt[2], int(self.rpyt[3]))
 
     def land_drone(self, msg):
         if msg.data == False: return
 
         self.setpoint_control = False
-        self.myFlie.commander.send_notify_setpoint_stop()
-        self.myFlie.high_level_commander.go_to(0, 0, 0.5, 0, 4, relative=False)
-        time.sleep(5.0)
-        self.myFlie.high_level_commander.land(0.0, 3.0)
+        self.crazyflie.commander.send_notify_setpoint_stop()
+        #self.crazyflie.high_level_commander.go_to(0, 0, 0.5, 0, 4, relative=False)
+        #time.sleep(5.0)
+        self.crazyflie.high_level_commander.land(0.0, 3.0)
         time.sleep(4.0)
 
         # end the link
         self.create_publisher(Bool, 'land', 10).publish(Bool(data=False))
-        self.myFlie.high_level_commander.stop()
-        self.myFlie.platform.send_arming_request(False)
+        self.crazyflie.high_level_commander.stop()
+        self.crazyflie.platform.send_arming_request(False)
         time.sleep(1.0)
-        self.myFlie.close_link()
+        self.crazyflie.close_link()
         self.get_logger().info('Crazyflie disarmed and program ended.')
         rclpy.shutdown()
         exit(0)
@@ -127,11 +132,11 @@ class DroneInterfaceNode(Node):
         
         # Map the range 0 to 1.2 to a new range of 10000 to 60000
         thrust = float(msg.thrust)
-        thrust = thrust*10000.0 + 47000.0
-        if thrust <= 60000:
+        thrust = thrust * MIN_THRUST + BASE_THRUST
+        if thrust <= MAX_THRUST:
             self.rpyt[3] = thrust
         else:
-            self.rpyt[3] = 60000.0
+            self.rpyt[3] = MAX_THRUST
             self.get_logger().warn('Thrust value is too high. Setting thrust to 60000.')
         
     def publish_log_data(self, timestamp, data, x):
@@ -194,7 +199,7 @@ class MocapWrapper(Thread):
         self._stay_open = False
 
     def run(self):
-        mc = motioncapture.connect(mocap_system_type, {'hostname': host_name})
+        mc = motioncapture.connect(MOCAP_TYPE, {'hostname': HOST_NAME})
         while self._stay_open:
             mc.waitForNextFrame()
             for name, obj in mc.rigidBodies.items():
@@ -217,44 +222,44 @@ def main(args=None):
 
     if vicon:
         print("Connecting to the vicon...")
-        mocap_wrapper = MocapWrapper(rigid_body_name)
+        mocap_wrapper = MocapWrapper(RIGID_BODY)
     else:
         print('Vicon is disabled. No mocap data will be sent to the Crazyflie.')
 
     with SyncCrazyflie(uri, cf=Crazyflie(rw_cache='./cache')) as scf:
-        myFlie = scf.cf
+        crazyflie = scf.cf
 
         if vicon:
             # Set up a callback to handle data from the mocap system
-            mocap_wrapper.on_pose = lambda pose: send_extpose_quat(myFlie, pose[0], pose[1], pose[2], pose[3])
+            mocap_wrapper.on_pose = lambda pose: send_extpose_quat(crazyflie, pose[0], pose[1], pose[2], pose[3])
 
         # adjust orientation sensitivity
-        myFlie.param.set_value('locSrv.extQuatStdDev', orientation_std_dev)
+        crazyflie.param.set_value('locSrv.extQuatStdDev', ORIENTATION_STANDARD_DEVIATION)
 
         # Activate kalman estimator
-        myFlie.param.set_value('stabilizer.estimator', '2')
+        crazyflie.param.set_value('stabilizer.estimator', '2')
 
         # Set the std deviation for the quaternion data pushed into the kalman filter. The default value seems to be a bit too low.
-        myFlie.param.set_value('locSrv.extQuatStdDev', 0.06)
+        crazyflie.param.set_value('locSrv.extQuatStdDev', 0.06)
 
         # Set the yaw commands to absolute angle (deg) instead of yaw rate (deg/s)
-        myFlie.param.set_value('flightmode.stabModeYaw', 1)
+        crazyflie.param.set_value('flightmode.stabModeYaw', 1)
 
         # Activate mellinger_controller
-        #myFlie.param.set_value('stabilizer.controller', '2')
+        #crazyflie.param.set_value('stabilizer.controller', '2')
 
         if vicon:
-            reset_estimator(myFlie)
+            reset_estimator(crazyflie)
 
         # Arm the Crazyflie
         print("Arming the Crazyflie...")
-        myFlie.platform.send_arming_request(True)
+        crazyflie.platform.send_arming_request(True)
         time.sleep(1.0)
 
         # Start the node
         print("Starting the drone interface node...")
         rclpy.init(args=args)
-        node = DroneInterfaceNode(myFlie) # Pass a reference to the Crazyflie object to the node
+        node = DroneInterfaceNode(crazyflie) # Pass a reference to the Crazyflie object to the node
         rclpy.spin(node)
         # AFTER THE NODE IS CLOSED
         node.destroy_node()
