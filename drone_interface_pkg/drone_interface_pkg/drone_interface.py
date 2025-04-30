@@ -21,7 +21,7 @@ vicon = True
 
 # URI to the Crazyflie to connect to
 uri = uri_helper.uri_from_env(default='radio://0/80/2M/E7E7E7E7E7')
-host_name = '192.168.0.100'
+host_name = '192.168.1.33'
 mocap_system_type = 'vicon'
 rigid_body_name = 'Crazyflie'
 # When using full pose, the estimator can be sensitive to noise in the orientation data when yaw is close to +/- 90
