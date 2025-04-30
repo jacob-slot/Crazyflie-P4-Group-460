@@ -66,7 +66,7 @@ class Controller(Node):
         self.last_pose[0] = msg.x
         self.last_pose[1] = msg.y
         self.last_pose[2] = msg.z
-        self.speed = msg.x_vel + msg.y_vel + msg.z_vel
+        self.speed = abs(msg.x_vel) + abs(msg.y_vel) + abs(msg.z_vel)
 
 
         #self.get_logger().info('Pose: "%s"' % self.last_pose[0])
