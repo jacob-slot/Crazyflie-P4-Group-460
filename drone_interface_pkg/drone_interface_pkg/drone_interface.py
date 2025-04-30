@@ -53,12 +53,12 @@ class DroneInterfaceNode(Node):
         logconf = LogConfig(name='Motors', period_in_ms=20)
         logconf.add_variable('pm.vbatMV', 'uint16_t')
         logconf.add_variable('controller.cmd_thrust', 'float')
-        #logconf.add_variable('controller.roll', 'float')
+        logconf.add_variable('controller.roll', 'float')
         logconf.add_variable('controller.pitch', 'float')
-        #logconf.add_variable('controller.yaw', 'float')
-        logconf.add_variable('stateEstimate.x', 'float')
-        logconf.add_variable('stateEstimate.y', 'float')
-        logconf.add_variable('stateEstimate.z', 'float')
+        logconf.add_variable('controller.yaw', 'float')
+        #logconf.add_variable('stateEstimate.x', 'float')
+        #logconf.add_variable('stateEstimate.y', 'float')
+        #logconf.add_variable('stateEstimate.z', 'float')
         #logconf.add_variable('stateEstimate.qx', 'float')
         #logconf.add_variable('stateEstimate.qy', 'float')
         #logconf.add_variable('stateEstimate.qz', 'float')
@@ -75,6 +75,7 @@ class DroneInterfaceNode(Node):
         self.myFlie.commander.send_setpoint(0, 0, 0, 0)
         time.sleep(0.1) 
         
+        '''
         self.myFlie.commander.send_notify_setpoint_stop()
         time.sleep(0.1)
 
@@ -82,7 +83,8 @@ class DroneInterfaceNode(Node):
         time.sleep(3.0)
         myFlie.high_level_commander.go_to(0, 0, 1, 0, 1, relative=False)
         time.sleep(1.2)
-
+        '''
+        
         self.ready_publisher.publish(Bool(data=True))
         self.get_logger().info('Crazyflie is ready and flying.')
 
@@ -135,14 +137,16 @@ class DroneInterfaceNode(Node):
     def publish_log_data(self, timestamp, data, x):
         msg = CfLog()
         
+        '''
         # Get position data from Crazyflie
         msg.x = float(data['stateEstimate.x'])
         msg.y = float(data['stateEstimate.y'])
         msg.z = float(data['stateEstimate.z'])
-        msg.quat_x = 0.0#float(data['stateEstimate.qx'])
-        msg.quat_y = 0.0#float(data['stateEstimate.qy'])
-        msg.quat_z = 0.0#float(data['stateEstimate.qz'])
-        msg.quat_w = 0.0#float(data['stateEstimate.qw'])
+        msg.quat_x = float(data['stateEstimate.qx'])
+        msg.quat_y = float(data['stateEstimate.qy'])
+        msg.quat_z = float(data['stateEstimate.qz'])
+        msg.quat_w = float(data['stateEstimate.qw'])
+        '''
         
         '''
         # Get position data from vicon
@@ -155,9 +159,9 @@ class DroneInterfaceNode(Node):
         msg.quat_w = float(latest_pose[6])'''
 
         # Get reference RPYT and battery voltage from Crazyflie
-        msg.roll_signal = 0.0#float(data['controller.roll'])
+        msg.roll_signal = float(data['controller.roll'])
         msg.pitch_signal = float(data['controller.pitch'])
-        msg.yaw_signal = 0.0#float(data['controller.yaw'])
+        msg.yaw_signal = float(data['controller.yaw'])
         msg.thrust_signal = float(data['controller.cmd_thrust'])
         msg.battery_voltage = float(data['pm.vbatMV'])
 
