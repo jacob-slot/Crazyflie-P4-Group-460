@@ -150,7 +150,7 @@ class Controller(Node):
 
             #Calculate the reference velocity
             vel_ref[i] = Kp[i]*error[i] + Ki[i]*self.integral[i] + Kd[i]*(error[i] - self.last_error[i])/dt
-            vel_ref = [0.0,0.0,0.2]
+
 
             #Calculate the velocity error
             vel_error[i] = vel_ref[i] - last_vel[i]
