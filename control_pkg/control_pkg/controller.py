@@ -96,16 +96,14 @@ class Controller(Node):
         """
 
         #PID gains x y z x_vel y_vel z_vel
-        # Kp = [ 4.0, 4.0, 0.8, 2.0, 2.0, 1.2]
-        # Ki = [ 0.0, 0.0, 1.2, 0.0, 0.0, 0.0]
-        # Kd = [ 1.0, 1.0, 0.0, 0.0, 0.0, 0.3]
+        Kp = [ 1.0, 1.0, 0.8, 12.5, 12.5, 1.2]
+        Ki = [ 0.0, 0.0, 1.2, 0.5, 0.5, 0.0]
+        Kd = [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.3]
 
-      
-
-        # Inside the PID method
-        Kp = np.array([2.0, 2.0, 1.6, 25.0, 25.0, 2.4]) * 0.5
-        Ki = np.array([0.0, 0.0, 2.4, 1.0, 1.0, 0.0]) * 0.5
-        Kd = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.6]) * 0.5
+        # # Inside the PID method
+        # Kp = np.array([2.0, 2.0, 1.6, 25.0, 25.0, 2.4]) * 0.5
+        # Ki = np.array([0.0, 0.0, 2.4, 1.0, 1.0, 0.0]) * 0.5
+        # Kd = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.6]) * 0.5
 
         #Calculate the time difference
         time = self.get_clock().now().nanoseconds/1000000000
