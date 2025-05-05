@@ -15,6 +15,8 @@ class Pathfinding(Node):
     def __init__(self):
         super().__init__('pathfinding_coords')
 
+        self.takeoff = True
+
         # Set up the QoS profile for the subscriptions
         qos_profile = QoSProfile(depth=10)  # You can adjust the depth if needed
         qos_profile.reliability = QoSReliabilityPolicy.RELIABLE
@@ -40,17 +42,21 @@ class Pathfinding(Node):
                     self.waypoints.append((x, y, z))
 
         self.array_index = 0
-        self.timer = self.create_timer(1, self.timer_callback)
+        self.timer = self.create_timer(0.01, self.timer_callback)
 
 
     def listen_position(self, msg):
         #get the value next_ref
-        self.get_logger().info('Received next_ref: %d' % msg.data)
+        #self.get_logger().info('Received next_ref: %d' % msg.data)
         self.array_index = msg.data
         
     def listen_pose(self, msg):
-        self.get_logger().info('Received pose: x=%f, y=%f, z=%f' % (msg.x, msg.y, msg.z))
-        if not self.first_pose:
+        #self.get_logger().info('Received pose: x=%f, y=%f, z=%f' % (msg.x, msg.y, msg.z))
+        if not self.takeoff:
+            self.first_pose = True
+            self.waypoints.pop(0)
+            self.destroy_subscription(self.pose_subscriber)
+        if not self.first_pose and self.takeoff:
             self.first_pose = True
             self.waypoints[0] = [msg.x, msg.y, 1.0]
             self.destroy_subscription(self.pose_subscriber)
@@ -77,7 +83,7 @@ class Pathfinding(Node):
             pitch=0.0,
             yaw=0.0
             ))
-            self.get_logger().info('Sending waypoint: %s' % str(self.waypoints[self.array_index]))
+            #self.get_logger().info('Sending waypoint: %s' % str(self.waypoints[self.array_index]))
 
         
 def main(args=None):
