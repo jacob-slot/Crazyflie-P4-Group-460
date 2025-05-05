@@ -13,14 +13,19 @@ class Pathfinding(Node):
     
     def __init__(self):
         super().__init__('pathfinding_coords')
+
+        self.first_pose = False
+
         self.get_logger().info('Pathfinding node has been started.')
         self.publisher = self.create_publisher(PoseRPY, 'ref_pose', 10)
 
         self.land_publisher = self.create_publisher(Bool, 'land', 10)
 
         self.subscriber = self.create_subscription(Int32, 'next_ref', self.listen_position, 10)
+
+        self.pose_subscriber = self.create_subscription(Int32, 'vrpn_mocap/Crazyflie/pose_rpy', self.listen_pose, 10)
         #get waypoints from txt file
-        self.waypoints = []
+        self.waypoints = [[0, 0, 0]]
         
         with open(pathfinding_path, 'r') as file:
             for line in file:
@@ -37,6 +42,11 @@ class Pathfinding(Node):
         #get the value next_ref
         self.get_logger().info('Received next_ref: %d' % msg.data)
         self.array_index = msg.data
+
+    def listen_pose(self, msg):
+        if not self.first_pose:
+            self.first_pose = True
+            self.waypoints[0] = (msg.x, msg.y, 1.0)
 
     def timer_callback(self):
         self.send_position()
