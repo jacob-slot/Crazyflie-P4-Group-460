@@ -6,6 +6,7 @@ from rclpy.node import Node
 from std_msgs.msg import Int32
 from interfaces.msg import PoseRPY # type: ignore
 from std_msgs.msg import Bool
+from rclpy.qos import QoSProfile, QoSReliabilityPolicy
 
 pathfinding_path = os.path.join(get_package_share_directory('pathfinding'), 'waypoints.txt')
 
@@ -13,6 +14,10 @@ class Pathfinding(Node):
     
     def __init__(self):
         super().__init__('pathfinding_coords')
+
+        # Set up the QoS profile for the subscriptions
+        qos_profile = QoSProfile(depth=10)  # You can adjust the depth if needed
+        qos_profile.reliability = QoSReliabilityPolicy.RELIABLE
 
         self.first_pose = False
 
@@ -23,7 +28,7 @@ class Pathfinding(Node):
 
         self.subscriber = self.create_subscription(Int32, 'next_ref', self.listen_position, 10)
 
-        self.pose_subscriber = self.create_subscription(Int32, 'vrpn_mocap/Crazyflie/pose_rpy', self.listen_pose, 10)
+        self.pose_subscriber = self.create_subscription(PoseRPY, 'vrpn_mocap/Crazyflie/pose_rpy', self.listen_pose, qos_profile)
         #get waypoints from txt file
         self.waypoints = [[0, 0, 0]]
         
@@ -42,11 +47,13 @@ class Pathfinding(Node):
         #get the value next_ref
         self.get_logger().info('Received next_ref: %d' % msg.data)
         self.array_index = msg.data
-
+        
     def listen_pose(self, msg):
+        self.get_logger().info('Received pose: x=%f, y=%f, z=%f' % (msg.x, msg.y, msg.z))
         if not self.first_pose:
             self.first_pose = True
-            self.waypoints[0] = (msg.x, msg.y, 1.0)
+            self.waypoints[0] = [msg.x, msg.y, 1.0]
+            self.destroy_subscription(self.pose_subscriber)
 
     def timer_callback(self):
         if self.first_pose:
@@ -70,7 +77,7 @@ class Pathfinding(Node):
             pitch=0.0,
             yaw=0.0
             ))
-            #self.get_logger().info('Sending waypoint: %s' % str(self.waypoints[self.array_index]))
+            self.get_logger().info('Sending waypoint: %s' % str(self.waypoints[self.array_index]))
 
         
 def main(args=None):
