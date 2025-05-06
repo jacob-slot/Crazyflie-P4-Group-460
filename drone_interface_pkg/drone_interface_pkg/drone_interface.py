@@ -80,15 +80,15 @@ class DroneInterfaceNode(Node):
         self.crazyflie.commander.send_setpoint(0, 0, 0, 0)
         time.sleep(0.1) 
         
-        
+        '''
         self.crazyflie.commander.send_notify_setpoint_stop()
         time.sleep(0.1)
         
         crazyflie.high_level_commander.takeoff(1, 2.0)
         time.sleep(3.0)
-        crazyflie.high_level_commander.go_to(0, 0, 1, 0, 1, relative=False)
+        crazyflie.high_level_commander.go_to(0.0, 0.0, 1.0, 0, 1, relative=False)
         time.sleep(1.2)
-        
+        '''
         
         self.ready_publisher.publish(Bool(data=True))
         self.get_logger().info('Crazyflie is ready and flying.')
@@ -98,7 +98,7 @@ class DroneInterfaceNode(Node):
 
     def send_rpyt(self):
         if self.setpoint_control:
-            self.get_logger().info('Sending RPYT setpoint: roll: {}, pitch: {}, yaw: {}, thrust: {}'.format(self.rpyt[0], self.rpyt[1], self.rpyt[2], self.rpyt[3]))
+            #self.get_logger().info('Sending RPYT setpoint: roll: {}, pitch: {}, yaw: {}, thrust: {}'.format(self.rpyt[0], self.rpyt[1], self.rpyt[2], self.rpyt[3]))
             self.crazyflie.commander.send_setpoint(self.rpyt[0], self.rpyt[1], self.rpyt[2], int(self.rpyt[3]))
 
     def land_drone(self, msg):
@@ -122,7 +122,7 @@ class DroneInterfaceNode(Node):
         exit(0)
 
     def signal_received(self, msg):
-        self.get_logger().info('Received RPYT signal: roll: {}, pitch: {}, yaw: {}, thrust: {}'.format(msg.roll, msg.pitch, msg.yaw, msg.thrust))
+        #self.get_logger().info('Received RPYT signal: roll: {}, pitch: {}, yaw: {}, thrust: {}'.format(msg.roll, msg.pitch, msg.yaw, msg.thrust))
         self.setpoint_control = True
 
         # Convert the RPYT message to the Crazyflie setpoint.

@@ -96,8 +96,8 @@ class Controller(Node):
         """
 
         #PID gains x y z x_vel y_vel z_vel
-        Kp = [ 1.0, 1.0, 0.8, 12.5, 12.5, 1.2]
-        Ki = [ 0.0, 0.0, 1.2, 0.5, 0.5, 0.0]
+        Kp = [ 1.0, 1.0, 0.8, 12.5, 12.5, 4.0]
+        Ki = [ 0.0, 0.0, 0.4, 0.0, 0.0, 0.0]
         Kd = [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.3]
 
         # # Inside the PID method
@@ -137,8 +137,11 @@ class Controller(Node):
             #Calculate the reference velocity
             vel_ref[i] = Kp[i]*error[i] + Ki[i]*self.integral[i] + Kd[i]*(error[i] - self.last_error[i])/dt
 
-            if vel_ref[i] > 1.0:
-                vel_ref[i] = 0.5
+            if vel_ref[i] > 3.0:
+                vel_ref[i] = 3.0
+            if vel_ref[i] < -3.0:
+                vel_ref[i] = -3.0
+            
             
             #Calculate the velocity error
             vel_error[i] = vel_ref[i] - last_vel[i]

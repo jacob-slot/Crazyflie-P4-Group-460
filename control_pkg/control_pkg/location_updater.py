@@ -5,7 +5,6 @@ from rclpy.node import Node
 
 from interfaces.msg import PoseRPY
 from std_msgs.msg import Int32
-from geometry_msgs.msg import Pose
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy
 
 
@@ -90,13 +89,13 @@ class Controller(Node):
         #self.get_logger().info('Error: "%s"' % error[0])
 
         # If within error margin, send the next reference
-        if abs(error[0]) < 0.036 and abs(error[1]) < 0.036 and abs(error[2]) < 0.036 and self.dt > 3 and self.speed < 0.1:
+        if abs(error[0]) < 0.1 and abs(error[1]) < 0.1 and abs(error[2]) < 0.1 and self.dt > 1 and self.speed < 0.2:
             self.position_number += 1
             msg = Int32()
 
             # Publish the control signal
             msg.data = self.position_number
-            self.get_logger().info('Update: "%s"' % msg.data)
+            #self.get_logger().info('Update: "%s"' % msg.data)
             self.status_publisher.publish(msg)
             self.dt = 0
             
