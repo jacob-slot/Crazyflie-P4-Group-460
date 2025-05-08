@@ -4,13 +4,14 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import os
 
-def read_csv_file(csv_file_path):
+def read_csv_file(csv_file_path, downsample_factor=10):
     """
     Read position and reference data from a CSV file.
     The CSV file should have columns: timestamp, x, y, z, x_ref, y_ref, z_ref
     
     Args:
         csv_file_path (str): Path to the CSV file
+        downsample_factor (int): Only keep every nth point to reduce plotting complexity
         
     Returns:
         tuple: Two lists containing position and reference data
@@ -18,6 +19,10 @@ def read_csv_file(csv_file_path):
     # Read the CSV file
     try:
         data = pd.read_csv(csv_file_path)
+        
+        # Downsample data
+        data = data.iloc[::downsample_factor]
+        print(f"Downsampled data from {len(pd.read_csv(csv_file_path))} to {len(data)} points")
         
         # Extract position data
         positions = [(row.x, row.y, row.z) for _, row in data.iterrows()]
@@ -106,12 +111,15 @@ def plot_3d_trajectory(positions, references):
 
 if __name__ == "__main__":
     # Ask for CSV file path if not provided
-    csv_file_path = r'G:\My Drive\AAU\4 Semester\ros_2_ws\src\Crazyflie-P4-Group-460\Data_Processing\csv\simulink_output.csv'
+    csv_file_path = r'G:\My Drive\AAU\4 Semester\ros_2_ws\src\Crazyflie-P4-Group-460\Data_Processing\csv\simulink_output_only_p_path.csv'
+    
+    # Set downsample factor (higher number = fewer points)
+    downsample_factor = 500  # Only plot every 20th point
     
     # Check if file exists
     if not os.path.exists(csv_file_path):
         print(f"Error: File '{csv_file_path}' not found.")
     else:
         # Read data and create plot
-        positions, references = read_csv_file(csv_file_path)
+        positions, references = read_csv_file(csv_file_path, downsample_factor)
         plot_3d_trajectory(positions, references)
