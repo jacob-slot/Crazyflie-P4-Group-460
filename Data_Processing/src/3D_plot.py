@@ -26,7 +26,7 @@ def read_bag_file(bag_file_path):
     return position_messages, reference_messages
 
 if __name__ == "__main__":
-    bag_file_path = '/home/jacob/Documents/the_ros2_ws/src/Crazyflie-P4-Group-460/Data_Processing/bags/bane-test/bane-test-1-kvadrat/2025-05-05-21-26-00_0.mcap'
+    bag_file_path = r'G:\My Drive\AAU\4 Semester\ros_2_ws\src\Crazyflie-P4-Group-460\Data_Processing\bags\bane-test\bane-test-2-trapz\2025-05-05-21-30-22_0.mcap'
     position_messages, reference_messages = read_bag_file(bag_file_path)
 
     # Extract drone position data
