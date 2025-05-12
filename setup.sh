@@ -24,6 +24,7 @@ pip install catkin_pkg
 pip install empy
 pip install lark
 pip install pyyaml
+pip install bagpy
 
 # Colcon build
 cd ../..
