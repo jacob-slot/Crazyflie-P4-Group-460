@@ -32,22 +32,22 @@ def generate_launch_description():
         arguments=['-d', rviz_config_path]
     )
 
-    rosbags_path = os.path.join(get_package_share_directory('system_bringup'))
+    # rosbags_path = os.path.join(get_package_share_directory('system_bringup'))
 
-    rosbag_record_node = ExecuteProcess(
-        cmd=[
-            'ros2', 'bag', 'record',
-            '-o', rosbags_path + '/rosbags/' + current_time,
-            '/vrpn_mocap/Crazyflie/pose_rpy',
-            '/CfLog',
-            '/control_signals',
-            '/ready',
-            '/ref_pose',''
-            '/land',
-            '/next_ref',
-        ],
-        output='screen'
-    )
+    # rosbag_record_node = ExecuteProcess(
+    #     cmd=[
+    #         'ros2', 'bag', 'record',
+    #         '-o', rosbags_path + '/rosbags/' + current_time,
+    #         '/vrpn_mocap/Crazyflie/pose_rpy',
+    #         '/CfLog',
+    #         '/control_signals',
+    #         '/ready',
+    #         '/ref_pose',''
+    #         '/land',
+    #         '/next_ref',
+    #     ],
+    #     output='screen'
+    # )
     
     
     # vrpn_mocap
@@ -87,7 +87,7 @@ def generate_launch_description():
 
     return LaunchDescription([
         #node_rviz2,
-        rosbag_record_node,
+        # rosbag_record_node,
         mocap_node,
         node_pathfinding,
         control_node,

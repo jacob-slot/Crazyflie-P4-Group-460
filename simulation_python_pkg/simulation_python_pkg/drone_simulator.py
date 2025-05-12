@@ -17,7 +17,7 @@ class Simulator(Node):
         
 
         # Create the publisher for the control signals
-        self.position_publisher = self.create_publisher(PoseRPY, 'location', 10)
+        self.position_publisher = self.create_publisher(PoseRPY, 'vrpn_mocap/Crazyflie/pose_rpy', 10)
 
         self.plot_publisher = self.create_publisher(Pose,'plot',10)
 
@@ -82,12 +82,13 @@ class Simulator(Node):
         time_step = current_time - self.start_time
         self.start_time = current_time
         # Get the current position  
-        self.x += (0.5 * xdd * time_step**2)
-        self.y += (0.5 * ydd * time_step**2)
-        self.z += (0.5 * zdd * time_step**2)
-        self.xd += (1.0 * xdd * time_step**1)
-        self.yd += (1.0 * ydd * time_step**1)
-        self.zd += (1.0 * zdd * time_step**1)
+        self.xd += (xdd * time_step)
+        self.yd += (ydd * time_step)
+        self.zd += (zdd * time_step)
+        self.x += (self.xd * time_step)
+        self.y += (self.yd * time_step)
+        self.z += (self.zd * time_step)
+        
 
         position.x = self.x
         position.y = self.y
@@ -102,9 +103,9 @@ class Simulator(Node):
         plotd.position.x = self.x
         plotd.position.y = self.y
         plotd.position.z = self.z
-        plotd.orientation.x = roll
-        plotd.orientation.y = pitch
-        plotd.orientation.z = yaw
+        plotd.orientation.x = self.xd
+        plotd.orientation.y = self.yd
+        plotd.orientation.z = self.zd
 
         self.get_logger().info('Publishing x: "%s"' % position.x)
         self.get_logger().info('Publishing y: "%s"' % position.y)
@@ -112,7 +113,7 @@ class Simulator(Node):
 
         self.position_publisher.publish(position)
         self.plot_publisher.publish(plotd)
-        time.sleep(0.1)
+        time.sleep(0.01)
 
         
 
