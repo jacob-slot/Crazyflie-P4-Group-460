@@ -15,7 +15,7 @@ class Pathfinding(Node):
     def __init__(self):
         super().__init__('pathfinding_coords')
 
-        self.takeoff = False
+        self.takeoff = True
 
         # Set up the QoS profile for the subscriptions
         qos_profile = QoSProfile(depth=10)  # You can adjust the depth if needed

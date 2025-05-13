@@ -166,10 +166,10 @@ class Controller(Node):
                 control_signal[i] = -1*control_signal[i]
 
             #Limit the pitch and roll signals
-            if control_signal[i] > 8.0 and i != 2:
-                control_signal[i] = 8.0
-            if control_signal[i] < -8.0 and i != 2:
-                control_signal[i] = -8.0
+            if control_signal[i] > 20.0 and i != 2:
+                control_signal[i] = 20.0
+            if control_signal[i] < -20.0 and i != 2:
+                control_signal[i] = -20.0
 
             #Limit the thrust signal
             if control_signal[i] < -1.2 and i == 2:
