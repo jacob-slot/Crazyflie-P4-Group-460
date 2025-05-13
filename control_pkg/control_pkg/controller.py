@@ -96,9 +96,9 @@ class Controller(Node):
         """
 
         #PID gains x y z x_vel y_vel z_vel
-        Kp = [ 1.0, 1.0, 0.8, 12.5, 12.5, 4.0]
-        Ki = [ 0.0, 0.0, 0.4, 0.0, 0.0, 0.0]
-        Kd = [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.3]
+        Kp = [ 1.46, 1.46, 1.46, 12.81, 12.81, 4.52]
+        Ki = [ 0.4, 0.4, 0.5, 0.0, 0.0, 0.0]
+        Kd = [ 0.6, 0.6, 0.0, 0.0, 0.0, 0.2]
 
         # # Inside the PID method
         # Kp = np.array([2.0, 2.0, 1.6, 25.0, 25.0, 2.4]) * 0.5
@@ -129,9 +129,14 @@ class Controller(Node):
 
             #Calculate the integral term
             self.integral[i] += error[i]*dt
-            if self.integral[i] > 0.5:
+            if self.integral[i] > 0.15 and i != 2:
+                self.integral[i] = 0.15
+            if self.integral[i] < -0.15 and i != 2:
+                self.integral[i] = -0.15
+            
+            if self.integral[i] > 0.5 and i == 2:
                 self.integral[i] = 0.5
-            if self.integral[i] < -0.5:
+            if self.integral[i] < -0.5 and i == 2:
                 self.integral[i] = -0.5
 
             #Calculate the reference velocity
@@ -161,10 +166,10 @@ class Controller(Node):
                 control_signal[i] = -1*control_signal[i]
 
             #Limit the pitch and roll signals
-            if control_signal[i] > 8.0 and i != 2:
-                control_signal[i] = 8.0
-            if control_signal[i] < -8.0 and i != 2:
-                control_signal[i] = -8.0
+            if control_signal[i] > 20.0 and i != 2:
+                control_signal[i] = 20.0
+            if control_signal[i] < -20.0 and i != 2:
+                control_signal[i] = -20.0
 
             #Limit the thrust signal
             if control_signal[i] < -1.2 and i == 2:

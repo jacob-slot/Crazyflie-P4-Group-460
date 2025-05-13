@@ -90,6 +90,8 @@ class DroneInterfaceNode(Node):
         time.sleep(1.2)
         '''
         
+        
+        
         self.ready_publisher.publish(Bool(data=True))
         self.get_logger().info('Crazyflie is ready and flying.')
 

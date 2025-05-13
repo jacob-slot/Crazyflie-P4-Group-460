@@ -75,9 +75,9 @@ void Client::MainLoop()
 {
   connection_->mainloop();
 
-  if (!connection_->doing_okay()) {
-    RCLCPP_WARN(this->get_logger(), "VRPN connection is bad");
-  }
+  //if (!connection_->doing_okay()) {
+    //RCLCPP_WARN(this->get_logger(), "VRPN connection is bad");
+  //}
 
   for (const auto & tracker : trackers_) {
     tracker.second->MainLoop();
