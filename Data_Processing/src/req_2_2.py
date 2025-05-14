@@ -30,7 +30,7 @@ def read_bag_file(bag_file_path):
     return position_messages, reference_messages
 
 if __name__ == "__main__":
-    bag_file_path = '/home/jacob/Documents/the_ros2_ws/src/Crazyflie-P4-Group-460/Data_Processing/bags/XY-test/xy-test-3-1.0-1.0/2025-05-05-19-46-35_0.mcap'
+    bag_file_path = '/home/jacob/Documents/the_ros2_ws/src/Crazyflie-P4-Group-460/Data_Processing/bags/Nye tests/xy-test-2/xy-test--0.5--0.5/2025-05-13-10-24-29_0.mcap'
     position_messages, reference_messages = read_bag_file(bag_file_path)
     
     # Extract timestamps and calculate time since the start of the bag
@@ -71,9 +71,9 @@ if __name__ == "__main__":
     max_y_deviation = max(abs(y - y_ref) for y in filtered_y)
     max_z_deviation = max(abs(z - z_ref) for z in filtered_z)
 
-    mean_x_deviation = np.mean([abs(x - x_ref) for x in filtered_x])
-    mean_y_deviation = np.mean([abs(y - y_ref) for y in filtered_y])
-    mean_z_deviation = np.mean([abs(z - z_ref) for z in filtered_z])
+    rmse_x = np.sqrt(np.mean([(x - x_ref)**2 for x in filtered_x]))
+    rmse_y = np.sqrt(np.mean([(y - y_ref)**2 for y in filtered_y]))
+    rmse_z = np.sqrt(np.mean([(z - z_ref)**2 for z in filtered_z]))
 
     std_x_deviation = np.std(filtered_x)
     std_y_deviation = np.std(filtered_y)
@@ -85,10 +85,10 @@ if __name__ == "__main__":
     print(f"X: {max_x_deviation:.3f} meters")
     print(f"Y: {max_y_deviation:.3f} meters")
     print(f"Z: {max_z_deviation:.3f} meters")
-    print(f"\nMean deviations:")
-    print(f"X: {mean_x_deviation:.3f} meters")
-    print(f"Y: {mean_y_deviation:.3f} meters")
-    print(f"Z: {mean_z_deviation:.3f} meters")
+    print(f"\nRoot Mean Square Error:")
+    print(f"X: {rmse_x:.3f} meters")
+    print(f"Y: {rmse_y:.3f} meters")
+    print(f"Z: {rmse_z:.3f} meters")
     print(f"\nStandard deviations:")
     print(f"X: {std_x_deviation:.3f} meters")
     print(f"Y: {std_y_deviation:.3f} meters")
@@ -146,12 +146,12 @@ if __name__ == "__main__":
     filtered_x_scatter, filtered_y_scatter = zip(*filtered_xy)
     
     ax4.scatter(filtered_x_scatter, filtered_y_scatter, 
-                color='blue', label='Drone Position', s=10)
+                color='blue', label='Drone Position', s=5, alpha=0.5)
     ax4.scatter(x_ref, y_ref, color='red', s=100, marker='*', label='Reference Point')
 
-    # Add circles at 5cm intervals up to 15cm
+    # Add circles at 1cm intervals up to 5cm
     circles = []
-    for radius in [0.05, 0.10, 0.15]:  # 5cm, 10cm, 15cm
+    for radius in [0.01, 0.02, 0.03, 0.04, 0.05]:  # 1cm to 5cm
         circle = plt.Circle((x_ref, y_ref), radius, fill=False, linestyle='--', 
                           color='gray', alpha=0.5)
         ax4.add_artist(circle)
@@ -159,7 +159,7 @@ if __name__ == "__main__":
 
     # Add labels for the circles
     for i, circle in enumerate(circles):
-        radius = (i + 1) * 5
+        radius = (i + 1) * 1  # 1cm increments
         ax4.text(x_ref + circle.radius, y_ref, f'{radius}cm', 
                 verticalalignment='bottom', horizontalalignment='left')
 
@@ -173,8 +173,8 @@ if __name__ == "__main__":
     ax4.set_aspect('equal')
     
     # Set limits to show the same range as individual plots (±15cm)
-    ax4.set_xlim(x_ref - 0.15, x_ref + 0.15)
-    ax4.set_ylim(y_ref - 0.15, y_ref + 0.15)
+    ax4.set_xlim(x_ref - 0.05, x_ref + 0.05)
+    ax4.set_ylim(y_ref - 0.05, y_ref + 0.05)
 
     plt.tight_layout()
     plt.show()

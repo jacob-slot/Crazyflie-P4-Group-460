@@ -111,7 +111,7 @@ def plot_3d_trajectory(positions, references):
 
 if __name__ == "__main__":
     # Ask for CSV file path if not provided
-    csv_file_path = r'G:\My Drive\AAU\4 Semester\ros_2_ws\src\Crazyflie-P4-Group-460\Data_Processing\csv\simulink_output_only_p_path.csv'
+    csv_file_path = '/home/jacob/Documents/the_ros2_ws/src/Crazyflie-P4-Group-460/Data_Processing/csv/simulink_output_only_p_path.csv'
     
     # Set downsample factor (higher number = fewer points)
     downsample_factor = 500  # Only plot every 20th point
