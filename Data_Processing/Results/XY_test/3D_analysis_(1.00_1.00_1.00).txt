@@ -1,0 +1,17 @@
+Reference position: X: 1.000, Y: 1.000, Z: 1.000 meters
+
+Maximum deviations:
+X: 0.0407 meters
+Y: 0.0262 meters
+Z: 0.0159 meters
+
+Root Mean Square Error:
+X: 0.0120 meters
+Y: 0.0080 meters
+Z: 0.0041 meters
+3D: 0.0150 meters
+
+Standard deviations:
+X: 0.0119 meters
+Y: 0.0080 meters
+Z: 0.0041 meters

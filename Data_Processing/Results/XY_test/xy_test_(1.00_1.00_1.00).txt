@@ -1,16 +1,16 @@
 Reference positions from /ref_pose - X: 1.000, Y: 1.000, Z: 1.000 meters
 
-Mean positions:
-X: 0.9990 meters
-Y: 1.0001 meters
-Z: 0.9997 meters
+X Results:
+Maximum deviation: 40.6783 mm
+Mean deviation: -0.9863 mm
+Root Mean Square Error: 11.9377 mm
 
-Maximum deviations:
-X: 0.0407 meters
-Y: 0.0262 meters
-Z: 0.0159 meters
+Y Results:
+Maximum deviation: 26.2352 mm
+Mean deviation: 0.0698 mm
+Root Mean Square Error: 8.0036 mm
 
-Root Mean Square Error:
-X: 0.0119 meters
-Y: 0.0080 meters
-Z: 0.0041 meters
+Z Results:
+Maximum deviation: 15.8687 mm
+Mean deviation: -0.3466 mm
+Root Mean Square Error: 4.0804 mm

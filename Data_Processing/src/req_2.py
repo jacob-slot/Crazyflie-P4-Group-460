@@ -30,7 +30,7 @@ def read_bag_file(bag_file_path):
     return position_messages, reference_messages
 
 if __name__ == "__main__":
-    bag_file_path = '/home/jacob/Documents/the_ros2_ws/src/Crazyflie-P4-Group-460/Data_Processing/bags/Nye tests/xy-test-2/xy-test-1.0-1.0/2025-05-13-10-15-28_0.mcap'
+    bag_file_path = '/home/jacob/Documents/the_ros2_ws/src/Crazyflie-P4-Group-460/Data_Processing/bags/Nye tests/xy-test-2/xy-test-1.0-0.0/2025-05-13-10-11-57_0.mcap'
     position_messages, reference_messages = read_bag_file(bag_file_path)
     
     # Extract timestamps and calculate time since the start of the bag
@@ -77,6 +77,10 @@ if __name__ == "__main__":
     mean_y = np.mean(filtered_y)
     mean_z = np.mean(filtered_z)
     
+    mean_deviation_x = mean_x - x_ref
+    mean_deviation_y = mean_y - y_ref
+    mean_deviation_z = mean_z - z_ref
+    
     # Calculate root mean square error (RMSE)
     rmse_x = np.sqrt(np.mean([(x - mean_x)**2 for x in filtered_x]))
     rmse_y = np.sqrt(np.mean([(y - mean_y)**2 for y in filtered_y]))
@@ -85,19 +89,24 @@ if __name__ == "__main__":
 
     print(f"\nAnalysis Results:")
     print(f"Reference positions from /ref_pose - X: {x_ref:.3f}, Y: {y_ref:.3f}, Z: {z_ref:.3f} meters")
-    print(f"\nMean positions:")
-    print(f"X: {mean_x:.4f} meters")
-    print(f"Y: {mean_y:.4f} meters")
-    print(f"Z: {mean_z:.4f} meters")
-    print(f"\nMaximum deviations:")
-    print(f"X: {max_x_deviation:.4f} meters")
-    print(f"Y: {max_y_deviation:.4f} meters")
-    print(f"Z: {max_z_deviation:.4f} meters")
-    print(f"\nRoot Mean Square Error:")
-    print(f"X: {rmse_x:.4f} meters")
-    print(f"Y: {rmse_y:.4f} meters")
-    print(f"Z: {rmse_z:.4f} meters")
+    
+    print(f"\nX Results:")
+    print(f"Maximum deviation: {max_x_deviation * 1000:.4f} mm")
+    print(f"Mean deviation: {mean_deviation_x * 1000:.4f} mm")
+    print(f"Root Mean Square Error: {rmse_x * 1000:.4f} mm")
+    
+    print(f"\nY Results:")
+    print(f"Maximum deviation: {max_y_deviation * 1000:.4f} mm")
+    print(f"Mean deviation: {mean_deviation_y * 1000:.4f} mm")
+    print(f"Root Mean Square Error: {rmse_y * 1000:.4f} mm")
+    
+    print(f"\nZ Results:")
+    print(f"Maximum deviation: {max_z_deviation * 1000:.4f} mm")
+    print(f"Mean deviation: {mean_deviation_z * 1000:.4f} mm")
+    print(f"Root Mean Square Error: {rmse_z * 1000:.4f} mm")
 
+
+    
 
     # Create subplots for X, Y, and Z positions
     fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(12, 12))
@@ -147,19 +156,21 @@ if __name__ == "__main__":
     # make a txt file with the results
     with open(f'{folder_path}/xy_test_({x_ref:.2f}_{y_ref:.2f}_{z_ref:.2f}).txt', 'w') as f:
         f.write(f"Reference positions from /ref_pose - X: {x_ref:.3f}, Y: {y_ref:.3f}, Z: {z_ref:.3f} meters\n")
-        f.write(f"\nMean positions:\n")
-        f.write(f"X: {mean_x:.4f} meters\n")
-        f.write(f"Y: {mean_y:.4f} meters\n")
-        f.write(f"Z: {mean_z:.4f} meters\n")
-        f.write(f"\nMaximum deviations:\n")
-        f.write(f"X: {max_x_deviation:.4f} meters\n")
-        f.write(f"Y: {max_y_deviation:.4f} meters\n")
-        f.write(f"Z: {max_z_deviation:.4f} meters\n")
-        f.write(f"\nRoot Mean Square Error:\n")
-        f.write(f"X: {rmse_x:.4f} meters\n")
-        f.write(f"Y: {rmse_y:.4f} meters\n")
-        f.write(f"Z: {rmse_z:.4f} meters\n")
         
+        f.write(f"\nX Results:\n")
+        f.write(f"Maximum deviation: {max_x_deviation * 1000:.4f} mm\n")
+        f.write(f"Mean deviation: {mean_deviation_x * 1000:.4f} mm\n")
+        f.write(f"Root Mean Square Error: {rmse_x * 1000:.4f} mm\n")
+        
+        f.write(f"\nY Results:\n")
+        f.write(f"Maximum deviation: {max_y_deviation * 1000:.4f} mm\n")
+        f.write(f"Mean deviation: {mean_deviation_y * 1000:.4f} mm\n")
+        f.write(f"Root Mean Square Error: {rmse_y * 1000:.4f} mm\n")
+        
+        f.write(f"\nZ Results:\n")
+        f.write(f"Maximum deviation: {max_z_deviation * 1000:.4f} mm\n")
+        f.write(f"Mean deviation: {mean_deviation_z * 1000:.4f} mm\n")
+        f.write(f"Root Mean Square Error: {rmse_z * 1000:.4f} mm\n")
     # save the figure
     fig.savefig(f'{folder_path}/xy_test_({x_ref:.2f}_{y_ref:.2f}_{z_ref:.2f}).png')
     

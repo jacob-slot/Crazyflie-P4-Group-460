@@ -1,0 +1,12 @@
+Overshoot Analysis Results:
+Reference positions - X: 1.000, Y: 1.000, Z: 1.500 meters
+
+Maximum Overshoots:
+X: 1.086 meters at t=10.14s
+Y: 0.881 meters at t=13.26s
+Z: 1.486 meters at t=8.96s
+
+Settling Times:
+X: 18.95 seconds
+Y: 21.69 seconds
+Z: 19.94 seconds
