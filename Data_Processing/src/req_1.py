@@ -25,7 +25,7 @@ def read_bag_file(bag_file_path):
     return messages_with_time
 
 if __name__ == "__main__":
-    bag_file_path = '/home/jacob/Documents/the_ros2_ws/src/Crazyflie-P4-Group-460/Data_Processing/bags/z-test-1/2025-05-05-17-37-01_0.mcap'
+    bag_file_path = r'G:\My Drive\AAU\4 Semester\ros_2_ws\src\Crazyflie-P4-Group-460\Data_Processing\bags\Nye tests\z-test-2\z-test-1.0\2025-05-13-09-45-13_0.mcap'
     messages_with_time = read_bag_file(bag_file_path)
     
     # Extract timestamps and calculate time since the start of the bag

@@ -1,0 +1,154 @@
+rosbag2_bagfile_information:
+  version: 9
+  storage_identifier: mcap
+  duration:
+    nanoseconds: 107269860731
+  starting_time:
+    nanoseconds_since_epoch: 1747123746349710392
+  message_count: 37329
+  topics_with_message_count:
+    - topic_metadata:
+        name: /CfLog
+        type: interfaces/msg/CfLog
+        serialization_format: cdr
+        offered_qos_profiles:
+          - history: unknown
+            depth: 0
+            reliability: reliable
+            durability: volatile
+            deadline:
+              sec: 9223372036
+              nsec: 854775807
+            lifespan:
+              sec: 9223372036
+              nsec: 854775807
+            liveliness: automatic
+            liveliness_lease_duration:
+              sec: 9223372036
+              nsec: 854775807
+            avoid_ros_namespace_conventions: false
+        type_description_hash: RIHS01_1dcaf3879c2206a879c47463acd0ecac751f181d3864842b008dd0188e9a2132
+      message_count: 4982
+    - topic_metadata:
+        name: /vrpn_mocap/Crazyflie/pose_rpy
+        type: interfaces/msg/PoseRPY
+        serialization_format: cdr
+        offered_qos_profiles:
+          - history: unknown
+            depth: 0
+            reliability: reliable
+            durability: transient_local
+            deadline:
+              sec: 9223372036
+              nsec: 854775807
+            lifespan:
+              sec: 9223372036
+              nsec: 854775807
+            liveliness: automatic
+            liveliness_lease_duration:
+              sec: 9223372036
+              nsec: 854775807
+            avoid_ros_namespace_conventions: false
+        type_description_hash: RIHS01_ef0fd905ec125bdd72c76d727954ff4b316a52480d766fb3c24c84a089f76ba9
+      message_count: 12832
+    - topic_metadata:
+        name: /ready
+        type: std_msgs/msg/Bool
+        serialization_format: cdr
+        offered_qos_profiles:
+          - history: unknown
+            depth: 0
+            reliability: reliable
+            durability: volatile
+            deadline:
+              sec: 9223372036
+              nsec: 854775807
+            lifespan:
+              sec: 9223372036
+              nsec: 854775807
+            liveliness: automatic
+            liveliness_lease_duration:
+              sec: 9223372036
+              nsec: 854775807
+            avoid_ros_namespace_conventions: false
+        type_description_hash: RIHS01_feb91e995ff9ebd09c0cb3d2aed18b11077585839fb5db80193b62d74528f6c9
+      message_count: 1
+    - topic_metadata:
+        name: /land
+        type: std_msgs/msg/Bool
+        serialization_format: cdr
+        offered_qos_profiles:
+          - history: unknown
+            depth: 0
+            reliability: reliable
+            durability: volatile
+            deadline:
+              sec: 9223372036
+              nsec: 854775807
+            lifespan:
+              sec: 9223372036
+              nsec: 854775807
+            liveliness: automatic
+            liveliness_lease_duration:
+              sec: 9223372036
+              nsec: 854775807
+            avoid_ros_namespace_conventions: false
+        type_description_hash: RIHS01_feb91e995ff9ebd09c0cb3d2aed18b11077585839fb5db80193b62d74528f6c9
+      message_count: 5
+    - topic_metadata:
+        name: /ref_pose
+        type: interfaces/msg/PoseRPY
+        serialization_format: cdr
+        offered_qos_profiles:
+          - history: unknown
+            depth: 0
+            reliability: reliable
+            durability: volatile
+            deadline:
+              sec: 9223372036
+              nsec: 854775807
+            lifespan:
+              sec: 9223372036
+              nsec: 854775807
+            liveliness: automatic
+            liveliness_lease_duration:
+              sec: 9223372036
+              nsec: 854775807
+            avoid_ros_namespace_conventions: false
+        type_description_hash: RIHS01_ef0fd905ec125bdd72c76d727954ff4b316a52480d766fb3c24c84a089f76ba9
+      message_count: 10728
+    - topic_metadata:
+        name: /control_signals
+        type: interfaces/msg/RPYT
+        serialization_format: cdr
+        offered_qos_profiles:
+          - history: unknown
+            depth: 0
+            reliability: reliable
+            durability: volatile
+            deadline:
+              sec: 9223372036
+              nsec: 854775807
+            lifespan:
+              sec: 9223372036
+              nsec: 854775807
+            liveliness: automatic
+            liveliness_lease_duration:
+              sec: 9223372036
+              nsec: 854775807
+            avoid_ros_namespace_conventions: false
+        type_description_hash: RIHS01_56066a4ec955805a209c3c732bdc58c905d6078cd009f4753bc838f784a3ff86
+      message_count: 8781
+  compression_format: ""
+  compression_mode: ""
+  relative_file_paths:
+    - 2025-05-13-10-09-05_0.mcap
+  files:
+    - path: 2025-05-13-10-09-05_0.mcap
+      starting_time:
+        nanoseconds_since_epoch: 1747123746349710392
+      duration:
+        nanoseconds: 107269860731
+      message_count: 37329
+  custom_data: ~
+  ros_distro: jazzy
