@@ -80,6 +80,7 @@ class DroneInterfaceNode(Node):
         self.crazyflie.commander.send_setpoint(0, 0, 0, 0)
         time.sleep(0.1) 
         
+        # Take of with high-level commander if necessary
         '''
         self.crazyflie.commander.send_notify_setpoint_stop()
         time.sleep(0.1)
@@ -90,20 +91,22 @@ class DroneInterfaceNode(Node):
         time.sleep(1.2)
         '''
         
-        
-        
+        # Publish the ready signal
         self.ready_publisher.publish(Bool(data=True))
         self.get_logger().info('Crazyflie is ready and flying.')
 
+        # Create a timer to send the setpoint at a fixed rate
         self.create_timer(CONTROL_LOOP_PERIOD, self.send_rpyt)
         
 
     def send_rpyt(self):
+        '''Send the setpoint to the drone'''
         if self.setpoint_control:
             #self.get_logger().info('Sending RPYT setpoint: roll: {}, pitch: {}, yaw: {}, thrust: {}'.format(self.rpyt[0], self.rpyt[1], self.rpyt[2], self.rpyt[3]))
             self.crazyflie.commander.send_setpoint(self.rpyt[0], self.rpyt[1], self.rpyt[2], int(self.rpyt[3]))
 
     def land_drone(self, msg):
+        '''Land the drone when the landing signal is received'''
         if msg.data == False: return
 
         self.setpoint_control = False
@@ -124,6 +127,7 @@ class DroneInterfaceNode(Node):
         exit(0)
 
     def signal_received(self, msg):
+        '''Receive the RPYT signal and set the setpoint'''
         #self.get_logger().info('Received RPYT signal: roll: {}, pitch: {}, yaw: {}, thrust: {}'.format(msg.roll, msg.pitch, msg.yaw, msg.thrust))
         self.setpoint_control = True
 
@@ -135,6 +139,8 @@ class DroneInterfaceNode(Node):
         # Map the range 0 to 1.2 to a new range of 10000 to 60000
         thrust = float(msg.thrust)
         thrust = thrust * MIN_THRUST + BASE_THRUST
+
+        # Check if the thrust is within the range
         if thrust <= MAX_THRUST:
             self.rpyt[3] = thrust
         else:
@@ -142,6 +148,7 @@ class DroneInterfaceNode(Node):
             self.get_logger().warn('Thrust value is too high. Setting thrust to 60000.')
         
     def publish_log_data(self, timestamp, data, x):
+        '''Publish the log data from the Crazyflie'''
         msg = CfLog()
         
         '''
