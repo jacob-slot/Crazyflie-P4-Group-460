@@ -16,10 +16,11 @@ class Controller(Node):
     def __init__(self):
         super().__init__('Controller')
 
+        # Set up the QoS profile for the subscriptions
         qos_profile = QoSProfile(depth=10)  # You can adjust the depth if needed
         qos_profile.reliability = QoSReliabilityPolicy.RELIABLE
 
-        # Initialize the last reference, pose and error variables
+        # Initialize variables
         self.speed = 0.0
         self.last_ref = [0, 0, 0]
         self.last_pose = [0, 0, 0]
@@ -45,9 +46,11 @@ class Controller(Node):
             qos_profile)
         self.pose_subscription
 
+        # Create a timer 
         self.timer = self.create_timer(1, self.timer_callback)
 
     def timer_callback(self):
+        """ Timer callback to update the dt variable """
         self.dt += 1
         
 
@@ -61,7 +64,7 @@ class Controller(Node):
         self.first_ref = True
 
     def listener_callback_pose(self, msg):
-        """ Save the last pose and update the command signal """
+        """ Save the last pose and speed, and update the position """
         self.last_pose[0] = msg.x
         self.last_pose[1] = msg.y
         self.last_pose[2] = msg.z
@@ -69,6 +72,8 @@ class Controller(Node):
 
 
         #self.get_logger().info('Pose: "%s"' % self.last_pose[0])
+
+        # if reference is received, update the position
         if self.first_ref == True:
             self.update_position()
 

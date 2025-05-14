@@ -79,7 +79,7 @@ class Controller(Node):
 
 
     def listener_callback_ref(self, msg):
-        """ Save the last reference """
+        """ Save the last reference and set first ref to True """
         self.last_ref = msg
         self.first_ref = True
 
@@ -100,12 +100,7 @@ class Controller(Node):
         Ki = [ 0.4, 0.4, 0.5, 0.0, 0.0, 0.0]
         Kd = [ 0.6, 0.6, 0.0, 0.0, 0.0, 0.2]
 
-        # # Inside the PID method
-        # Kp = np.array([2.0, 2.0, 1.6, 25.0, 25.0, 2.4]) * 0.5
-        # Ki = np.array([0.0, 0.0, 2.4, 1.0, 1.0, 0.0]) * 0.5
-        # Kd = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.6]) * 0.5
-
-        #Calculate the time difference
+        #Calculate the time difference since last call
         time = self.get_clock().now().nanoseconds/1000000000
         dt = max(time - self.start_time, 1e-6)
         self.start_time = time
@@ -123,12 +118,16 @@ class Controller(Node):
         pose = [self.last_pose.x, self.last_pose.y, self.last_pose.z]
         last_vel = [self.last_pose.x_vel, self.last_pose.y_vel, self.last_pose.z_vel]
 
+        #Loop for x, y, z
+        #In the order of roll, pitch, thrust
         for i in [1,0,2]:
             #Calculate the error
             error[i] = ref[i] - pose[i]
 
             #Calculate the integral term
             self.integral[i] += error[i]*dt
+
+            #Limit the integral term
             if self.integral[i] > 0.15 and i != 2:
                 self.integral[i] = 0.15
             if self.integral[i] < -0.15 and i != 2:
@@ -142,6 +141,7 @@ class Controller(Node):
             #Calculate the reference velocity
             vel_ref[i] = Kp[i]*error[i] + Ki[i]*self.integral[i] + Kd[i]*(error[i] - self.last_error[i])/dt
 
+            #Limit the reference velocity
             if vel_ref[i] > 3.0:
                 vel_ref[i] = 3.0
             if vel_ref[i] < -3.0:
@@ -153,6 +153,8 @@ class Controller(Node):
 
             #Calculate the velocity integral term
             self.vel_integral[i] += vel_error[i]*dt
+
+            #Limit the velocity integral term
             if self.vel_integral[i] > 10.0:
                 self.vel_integral[i] = 10.0
             if self.vel_integral[i] < -10.0:
@@ -177,11 +179,11 @@ class Controller(Node):
             if control_signal[i] > 1.2 and i == 2:
                 control_signal[i] = 1.2
 
-
+        #Save the last errors
         self.last_vel_error = vel_error
         self.last_error = error
         
-
+        #Return the control signals
         return control_signal
     
     
@@ -202,6 +204,8 @@ class Controller(Node):
 
         #Publish the control signals
         self.control_publisher.publish(msg)
+
+        #wait for 0.01 seconds
         time.sleep(0.01)
 
 
