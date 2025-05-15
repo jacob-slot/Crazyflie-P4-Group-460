@@ -1,0 +1,20 @@
+Reference position: X: -0.500, Y: 0.500, Z: 1.750 meters
+X results:
+Maximum deviation: 11.803 mm
+Mean deviation: 0.924 mm
+Root Mean Square Error: 4.227 mm
+
+Y results:
+Maximum deviation: 14.560 mm
+Mean deviation: 1.616 mm
+Root Mean Square Error: 4.209 mm
+
+Z results:
+Maximum deviation: 12.112 mm
+Mean deviation: 1.124 mm
+Root Mean Square Error: 3.370 mm
+
+3D Results:
+Maximum distance error: 17.929 mm
+Mean distance error: 6.283 mm
+Root Mean Square Error: 7.188 mm
