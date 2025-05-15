@@ -1,0 +1,20 @@
+Analyzing bag: /home/jacob/Documents/the_ros2_ws/src/Crazyflie-P4-Group-460/Data_Processing/bags/Nye tests/Waypoint-test-2/waypoint-test-1.5-1.0-1.25/2025-05-13-12-46-05_0.mcap
+Reference positions: X: 1.500, Y: 1.000, Z: 1.250 meters
+
+X-axis results:
+Maximum overshoot: 22.40 mm
+Absolute position at overshoot: 1.522 m
+Time of maximum overshoot: 16.00 seconds
+Overshoot percentage: 1.49%
+
+Y-axis results:
+Maximum overshoot: 79.82 mm
+Absolute position at overshoot: 1.080 m
+Time of maximum overshoot: 15.91 seconds
+Overshoot percentage: 7.98%
+
+Z-axis results:
+Maximum overshoot: 30.82 mm
+Absolute position at overshoot: 1.281 m
+Time of maximum overshoot: 14.89 seconds
+Overshoot percentage: 2.47%
