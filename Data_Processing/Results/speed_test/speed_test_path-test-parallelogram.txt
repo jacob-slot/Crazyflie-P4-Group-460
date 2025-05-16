@@ -1,0 +1,10 @@
+Path Shape: path-test-parallelogram
+Number of waypoints: 9
+Flight time (first to last waypoint): 33.32 seconds
+Path length: 9.39 meters
+Average speed: 0.28 m/s
+
+Fun Facts til Tobias:
+Maximum speed: 1.48 m/s (5.32 km/h)
+Actual drone path length: 10.12 meters
+Path efficiency: 92.81%

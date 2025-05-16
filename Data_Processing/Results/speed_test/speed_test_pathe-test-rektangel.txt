@@ -1,0 +1,10 @@
+Path Shape: pathe-test-rektangel
+Number of waypoints: 9
+Flight time (first to last waypoint): 36.00 seconds
+Path length: 9.38 meters
+Average speed: 0.26 m/s
+
+Fun Facts til Tobias:
+Maximum speed: 1.47 m/s (5.30 km/h)
+Actual drone path length: 10.28 meters
+Path efficiency: 91.23%

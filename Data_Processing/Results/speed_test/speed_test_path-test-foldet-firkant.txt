@@ -1,0 +1,10 @@
+Path Shape: path-test-foldet-firkant
+Number of waypoints: 7
+Flight time (first to last waypoint): 30.57 seconds
+Path length: 10.69 meters
+Average speed: 0.35 m/s
+
+Fun Facts til Tobias:
+Maximum speed: 2.64 m/s (9.50 km/h)
+Actual drone path length: 11.71 meters
+Path efficiency: 91.34%

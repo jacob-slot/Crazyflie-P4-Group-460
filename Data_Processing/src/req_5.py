@@ -191,6 +191,17 @@ if __name__ == "__main__":
     print(f"Analyzing bag file: {bag_file_path}")
     position_messages, reference_messages = read_bag_file(bag_file_path)
     
+    # Set font sizes for better readability
+    plt.rcParams.update({
+        'font.size': 16,
+        'axes.titlesize': 16,
+        'axes.labelsize': 16,
+        'xtick.labelsize': 14,
+        'ytick.labelsize': 14,
+        'legend.fontsize': 14,
+        'figure.titlesize': 18
+    })
+    
     # Extract timestamps and calculate time since the start of the bag
     start_timestamp = position_messages[0][0]  # First message timestamp
     relative_times = [(msg[0] - start_timestamp) / 1e9 for msg in position_messages]  # Time in seconds since start
@@ -273,7 +284,7 @@ if __name__ == "__main__":
         print("No reference crossings detected")
 
     # Create subplots for X, Y, and Z positions
-    fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(12, 15))
+    fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(14, 13))
     
     # Plot X position with annotations for overshoot
     ax1.plot(relative_times, x_positions, label='X Position', color='red')
@@ -281,21 +292,34 @@ if __name__ == "__main__":
     if x_overshoot["has_crossings"] and x_overshoot["max_overshoot"] > 0:
         # Mark the overshoot directly at the time it occurs
         ax1.scatter([x_overshoot["time_at_overshoot"]], [x_overshoot["position_at_overshoot"]], color='red', s=100, marker='X')
-        ax1.annotate(f'Max overshoot: {x_overshoot["max_overshoot"]*1000:.2f}mm', 
-                    xy=(x_overshoot["time_at_overshoot"], x_overshoot["position_at_overshoot"]),
-                    xytext=(x_overshoot["time_at_overshoot"]+2, x_overshoot["position_at_overshoot"]),
-                    arrowprops=dict(facecolor='red', shrink=0.05))
     
-    # Add text about timing
-    ax1.text(0.6, 0.8, f"Overshoot at t={x_overshoot['time_at_overshoot']:.2f}s", 
-             transform=ax1.transAxes, ha='center', va='top')
+    # Add legend
+    ax1_legend = ax1.legend(loc='upper right')
+    
+    # Add box with overshoot info on the left side
+    overshoot_info = f"Max overshoot: {x_overshoot['max_overshoot']*1000:.2f} mm\nTime: {x_overshoot['time_at_overshoot']:.2f} s"
+    box_coords_left = (0.05, 0.85)  # Position of the box in axis coordinates (left side)
+    box_coords_right = (0.20, 0.80)  # Bottom right corner of the box (approx)
+    
+    # Add box with arrow to max overshoot point
+    if x_overshoot["has_crossings"] and x_overshoot["max_overshoot"] > 0:
+        # Add arrow connecting box to max overshoot point with improved accuracy
+        ax1.annotate('', 
+                    xy=(x_overshoot["time_at_overshoot"], x_overshoot["position_at_overshoot"]),
+                    xytext=box_coords_right,
+                    arrowprops=dict(facecolor='red', edgecolor='red', width=1.5, headwidth=8, shrink=0.02),
+                    xycoords='data', textcoords='axes fraction')
+        
+    # Add the info box text
+    ax1.text(box_coords_left[0], box_coords_left[1], overshoot_info, transform=ax1.transAxes, 
+             horizontalalignment='left', verticalalignment='top',
+             bbox=dict(boxstyle='round', facecolor='white', alpha=1))
     
     ax1.set_title('Drone X Position Over Time with Overshoot Analysis')
     ax1.set_ylabel('X Position (meters)')
     ax1.set_xlim(5, 30)
     ax1.set_ylim(x_ref - 0.30, x_ref + 0.30)  # ±30cm around reference
     ax1.grid(True)
-    ax1.legend()
 
     # Plot Y position with annotations for overshoot
     ax2.plot(relative_times, y_positions, label='Y Position', color='green')
@@ -303,22 +327,34 @@ if __name__ == "__main__":
     if y_overshoot["has_crossings"] and y_overshoot["max_overshoot"] > 0:
         # Mark the overshoot directly at the time it occurs
         ax2.scatter([y_overshoot["time_at_overshoot"]], [y_overshoot["position_at_overshoot"]], color='green', s=100, marker='X')
-        ax2.annotate(f'Max overshoot: {y_overshoot["max_overshoot"]*1000:.2f}mm', 
-                    xy=(y_overshoot["time_at_overshoot"], y_overshoot["position_at_overshoot"]),
-                    xytext=(y_overshoot["time_at_overshoot"]+2, y_overshoot["position_at_overshoot"]),
-                    arrowprops=dict(facecolor='green', shrink=0.05))
     
-    # Add text about timing
-    ax2.text(0.6, 0.8, f"Overshoot at t={y_overshoot['time_at_overshoot']:.2f}s", 
-             transform=ax2.transAxes, ha='center', va='top')
+    # Add legend
+    ax2_legend = ax2.legend(loc='upper right')
+    
+    # Add box with overshoot info on the left side
+    overshoot_info = f"Max overshoot: {y_overshoot['max_overshoot']*1000:.2f} mm\nTime: {y_overshoot['time_at_overshoot']:.2f} s"
+    box_coords_left = (0.05, 0.85)  # Position of the box in axis coordinates (left side)
+    box_coords_right = (0.20, 0.80)  # Bottom right corner of the box (approx)
+    
+    # Add box with arrow to max overshoot point
+    if y_overshoot["has_crossings"] and y_overshoot["max_overshoot"] > 0:
+        # Add arrow connecting box to max overshoot point with improved accuracy
+        ax2.annotate('', 
+                    xy=(y_overshoot["time_at_overshoot"], y_overshoot["position_at_overshoot"]),
+                    xytext=box_coords_right,
+                    arrowprops=dict(facecolor='green', edgecolor='green', width=1.5, headwidth=8, shrink=0.02),
+                    xycoords='data', textcoords='axes fraction')
+    
+    # Add the info box text
+    ax2.text(box_coords_left[0], box_coords_left[1], overshoot_info, transform=ax2.transAxes, 
+             horizontalalignment='left', verticalalignment='top',
+             bbox=dict(boxstyle='round', facecolor='white', alpha=1))
     
     ax2.set_title('Drone Y Position Over Time with Overshoot Analysis')
     ax2.set_ylabel('Y Position (meters)')
-    #ax2.set_xlim(0, end_time)
     ax2.set_xlim(5, 30)
     ax2.set_ylim(y_ref - 0.30, y_ref + 0.30)  # ±30cm around reference
     ax2.grid(True)
-    ax2.legend()
 
     # Plot Z position with annotations for overshoot
     ax3.plot(relative_times, z_positions, label='Z Position', color='blue')
@@ -326,14 +362,28 @@ if __name__ == "__main__":
     if z_overshoot["has_crossings"] and z_overshoot["max_overshoot"] > 0:
         # Mark the overshoot directly at the time it occurs
         ax3.scatter([z_overshoot["time_at_overshoot"]], [z_overshoot["position_at_overshoot"]], color='blue', s=100, marker='X')
-        ax3.annotate(f'Max overshoot: {z_overshoot["max_overshoot"]*1000:.2f}mm', 
-                    xy=(z_overshoot["time_at_overshoot"], z_overshoot["position_at_overshoot"]),
-                    xytext=(z_overshoot["time_at_overshoot"]+2, z_overshoot["position_at_overshoot"]),
-                    arrowprops=dict(facecolor='blue', shrink=0.05))
     
-    # Add text about timing
-    ax3.text(0.6, 0.8, f"Overshoot at t={z_overshoot['time_at_overshoot']:.2f}s", 
-             transform=ax3.transAxes, ha='center', va='top')
+    # Add legend
+    ax3_legend = ax3.legend(loc='upper right')
+    
+    # Add box with overshoot info on the left side
+    overshoot_info = f"Max overshoot: {z_overshoot['max_overshoot']*1000:.2f} mm\nTime: {z_overshoot['time_at_overshoot']:.2f} s"
+    box_coords_left = (0.05, 0.85)  # Position of the box in axis coordinates (left side)
+    box_coords_right = (0.20, 0.80)  # Bottom right corner of the box (approx)
+    
+    # Add box with arrow to max overshoot point
+    if z_overshoot["has_crossings"] and z_overshoot["max_overshoot"] > 0:
+        # Add arrow connecting box to max overshoot point with improved accuracy
+        ax3.annotate('', 
+                    xy=(z_overshoot["time_at_overshoot"], z_overshoot["position_at_overshoot"]),
+                    xytext=box_coords_right,
+                    arrowprops=dict(facecolor='blue', edgecolor='blue', width=1.5, headwidth=8, shrink=0.02),
+                    xycoords='data', textcoords='axes fraction')
+    
+    # Add the info box text
+    ax3.text(box_coords_left[0], box_coords_left[1], overshoot_info, transform=ax3.transAxes, 
+             horizontalalignment='left', verticalalignment='top',
+             bbox=dict(boxstyle='round', facecolor='white', alpha=1))
     
     ax3.set_title('Drone Z Position Over Time with Overshoot Analysis')
     ax3.set_xlabel('Time Since Start (seconds)')
@@ -341,7 +391,6 @@ if __name__ == "__main__":
     ax3.set_xlim(5, 30)
     ax3.set_ylim(z_ref - 0.30, z_ref + 0.30)  # ±30cm around reference
     ax3.grid(True)
-    ax3.legend()
 
     # Adjust layout
     plt.tight_layout()
@@ -384,5 +433,6 @@ if __name__ == "__main__":
 
     # Save the figure
     fig.savefig(f'{folder_path}/overshoot_test_({x_ref:.2f}_{y_ref:.2f}_{z_ref:.2f}).png')
+    fig.savefig(f'{folder_path}/overshoot_test_({x_ref:.2f}_{y_ref:.2f}_{z_ref:.2f}).pdf')
     
     plt.show()

@@ -1,0 +1,10 @@
+Path Shape: path-test-kvadrat
+Number of waypoints: 9
+Flight time (first to last waypoint): 32.99 seconds
+Path length: 13.78 meters
+Average speed: 0.42 m/s
+
+Fun Facts til Tobias:
+Maximum speed: 2.05 m/s (7.38 km/h)
+Actual drone path length: 14.90 meters
+Path efficiency: 92.51%
